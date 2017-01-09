@@ -24,7 +24,6 @@ namespace loconotes
                 .AddEnvironmentVariables()
                 ;
 
-
             Configuration = builder.Build();
         }
 

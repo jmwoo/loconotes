@@ -57,6 +57,13 @@ namespace loconotes.Controllers
             }
         }
 
+        [HttpPost("{id:int}/vote")]
+        public async Task<IActionResult> Vote([FromRoute] int id, Vote vote)
+        {
+            var note = await _noteService.Vote(id, vote).ConfigureAwait(false);
+            return Ok(note);
+        }
+
         [HttpPost("nearby")]
         public async Task<IActionResult> Nearby([FromBody] NoteSearchRequest noteSearchRequest)
         {

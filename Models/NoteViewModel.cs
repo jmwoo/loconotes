@@ -7,6 +7,7 @@ namespace loconotes.Models
 {
     public class NoteViewModel
     {
+        public int Id { get; set; }
         public Guid Uid { get; set; }
         public int Score { get; set; }
         public DateTime DateCreated { get; set; }

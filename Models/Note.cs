@@ -53,6 +53,7 @@ namespace loconotes.Models
         {
             return new NoteViewModel
             {
+                Id = this.Id,
                 Uid = this.Uid.Value,
                 Score = this.Score,
                 DateCreated = this.DateCreated.Value,

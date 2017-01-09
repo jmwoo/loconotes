@@ -52,9 +52,12 @@ namespace loconotes.Services
             }
         }
 
-        public Task<Note> Vote(int id, Vote vote)
+        public async Task<Note> Vote(int id, Vote vote)
         {
-            throw new NotImplementedException();
+            var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
+            note.Score += Convert.ToInt32(vote);
+            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            return note;
         }
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
