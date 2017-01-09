@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using loconotes.Data;
+using loconotes.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace loconotes
 {
@@ -18,7 +21,10 @@ namespace loconotes
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
+                .AddEnvironmentVariables()
+                ;
+
+
             Configuration = builder.Build();
         }
 
@@ -28,7 +34,13 @@ namespace loconotes
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+            services.AddDbContext<LoconotesDbContext>(options =>
+                options.UseSqlServer(Configuration.GetSection("Data")["LoconotesConnectionString"]));
+
             services.AddMvc();
+
+            // application services
+            services.AddTransient<INoteService, NoteService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

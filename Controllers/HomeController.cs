@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace loconotes.Controllers
 {
     [Route("")]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         [HttpGet]
         [Route("")]
@@ -15,7 +15,7 @@ namespace loconotes.Controllers
         {
             var ipAddr = Request.HttpContext.Connection.RemoteIpAddress;
             var now = DateTime.UtcNow;
-            var msg = $"Hi '{ipAddr.ToString()}' at '{now}'. Would you like some loconotes?";
+            var msg = $"Hi '{ipAddr}' at '{now}'. Would you like some loconotes?";
             return msg;
         }
     }
