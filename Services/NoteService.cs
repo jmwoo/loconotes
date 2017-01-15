@@ -14,7 +14,7 @@ namespace loconotes.Services
     {
         Task<IEnumerable<NoteViewModel>> GetAll();
         Task<NoteViewModel> Create(Note note);
-        Task<Note> Vote(int id, Vote vote);
+        Task<Note> Vote(int id, VoteModel voteModel);
         Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest);
     }
 
@@ -48,16 +48,23 @@ namespace loconotes.Services
             }
             catch (DbUpdateException updateException)
             {
-                throw new ConflictException(updateException.Message);
+                throw new ConflictException(updateException.Message, updateException);
             }
         }
 
-        public async Task<Note> Vote(int id, Vote vote)
+        public async Task<Note> Vote(int id, VoteModel voteModel)
         {
-            var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
-            note.Score += Convert.ToInt32(vote);
-            await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-            return note;
+            try
+            {
+                var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
+                note.Score += Convert.ToInt32(voteModel.Vote);
+                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                return note;
+            }
+            catch (DbUpdateException updateException)
+            {
+                throw new ConflictException(updateException.Message, updateException);
+            }
         }
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
