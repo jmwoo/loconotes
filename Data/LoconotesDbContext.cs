@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using loconotes.Models;
+using loconotes.Models.Note;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Data

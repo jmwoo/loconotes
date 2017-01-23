@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
 using loconotes.Business.GeoLocation;
 using loconotes.Data;
-using loconotes.Models;
+using loconotes.Models.Note;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services

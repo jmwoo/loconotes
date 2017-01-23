@@ -23,7 +23,10 @@
     "Microsoft.EntityFrameworkCore.SqlServer.Design": {
       "version": "1.0.1",
       "type": "build"
-    }
+    },
+    "Microsoft.AspNetCore.Authentication.JwtBearer": "1.1.0",
+    "System.IdentityModel.Tokens.Jwt": "5.1.2",
+    "Microsoft.IdentityModel.Tokens": "5.1.2"
 
   },
 
