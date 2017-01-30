@@ -38,7 +38,7 @@ namespace loconotes.Controllers
             }
         }
 
-        [HttpPost("create")]
+        [HttpPost("")]
         public async Task<IActionResult> Create([FromBody] NoteCreateModel noteCreateModel)
         {
             var user = GetApplicationUser();
