@@ -6,6 +6,7 @@ using loconotes.Business.Exceptions;
 using loconotes.Business.GeoLocation;
 using loconotes.Data;
 using loconotes.Models.Note;
+using loconotes.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services
@@ -35,16 +36,17 @@ namespace loconotes.Services
 
             return allNotes
                 .OrderByDescending(n => n.DateCreated)
-                .Select(n => n.ToNoteViewModel());
+                .Select(n => n.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => n.UserId == u.Id)));
         }
 
         public async Task<NoteViewModel> Create(Note note)
         {
             try
             {
+
                 _dbContext.Notes.Add(note);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-                return note.ToNoteViewModel();
+                return note.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => note.UserId == u.Id));
             }
             catch (DbUpdateException updateException)
             {
@@ -85,7 +87,7 @@ namespace loconotes.Services
                         GeolocationHelpers.CalculateDistance(n.LatitudeD, n.LongitudeD, noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD,
                             GeolocationHelpers.DistanceType.Kilometers))
                 .Take(noteSearchRequest.Take)
-                .Select(n => n.ToNoteViewModel())
+                .Select(n => n.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => n.UserId == u.Id)))
                 ;
 
             return orderedNearbyNotes;

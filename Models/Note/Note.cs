@@ -1,7 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using loconotes.Business.GeoLocation;
+using loconotes.Models.User;
+using loconotes.Services;
 using Newtonsoft.Json;
 
 namespace loconotes.Models.Note
@@ -44,9 +47,11 @@ namespace loconotes.Models.Note
         double? IGeoCode.LatitudeGeoCode => this.LatitudeD;
         double? IGeoCode.LongitudeGeoCode => this.LongitudeD;
 
+        public int UserId { get; set; }
+
 
         // TODO: move this to dedicated mapper
-        public NoteViewModel ToNoteViewModel()
+        public NoteViewModel ToNoteViewModel(User.User user)
         {
             return new NoteViewModel
             {
@@ -58,7 +63,8 @@ namespace loconotes.Models.Note
                 Body = this.Body,
                 Latitude = this.Latitude,
                 Longitude = this.Longitude,
-                Radius = this.Radius
+                Radius = this.Radius,
+                Author = user.Username
             };
         }
     }

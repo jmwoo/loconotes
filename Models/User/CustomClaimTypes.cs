@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace loconotes.Models.User
 {
-    public class ApplicationUser
+    public class CustomClaimTypes
     {
-        public string Username { get; set; }
-        public int Id { get; set; }
+        public static string Username => "username";
+        public static string UserId => "userid";
     }
 }

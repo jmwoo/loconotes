@@ -1,4 +1,6 @@
-﻿namespace loconotes.Models.Note
+﻿using loconotes.Models.User;
+
+namespace loconotes.Models.Note
 {
     public class NoteCreateModel
     {
@@ -9,7 +11,7 @@
         public int Radius { get; set; }
 
         // TODO: move to dedicated mapper
-        public Note ToNote()
+        public Note ToNote(ApplicationUser user)
         {
             return new Note
             {
@@ -18,6 +20,7 @@
                 Latitude = this.Latitude,
                 Longitude = this.Longitude,
                 Radius = this.Radius,
+                UserId = user.Id
             };
         }
     }

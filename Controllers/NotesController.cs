@@ -12,7 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace loconotes.Controllers
 {
     [Route("api/notes")]
-    public class NotesController : BaseController
+    [Authorize]
+    public class NotesController : BaseIdentityController
     {
         private readonly INoteService _noteService;
 
@@ -24,7 +25,6 @@ namespace loconotes.Controllers
         }
 
         [HttpGet("")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -39,10 +39,10 @@ namespace loconotes.Controllers
         }
 
         [HttpPost("create")]
-        [AllowAnonymous]
         public async Task<IActionResult> Create([FromBody] NoteCreateModel noteCreateModel)
         {
-            var noteToCreate = noteCreateModel.ToNote();
+            var user = GetApplicationUser();
+            var noteToCreate = noteCreateModel.ToNote(user);
 
             if (!TryValidateModel(noteToCreate))
             {
@@ -61,7 +61,6 @@ namespace loconotes.Controllers
         }
 
         [HttpPost("{id:int}/vote")]
-        [AllowAnonymous]
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
             var note = await _noteService.Vote(id, voteModel).ConfigureAwait(false);
@@ -69,7 +68,6 @@ namespace loconotes.Controllers
         }
 
         [HttpPost("nearby")]
-        [AllowAnonymous]
         public async Task<IActionResult> Nearby([FromBody] NoteSearchRequest noteSearchRequest)
         {
             if (!TryValidateModel(noteSearchRequest))
@@ -77,15 +75,6 @@ namespace loconotes.Controllers
 
             var nearybyNotes = await _noteService.Nearby(noteSearchRequest).ConfigureAwait(false);
             return Ok(nearybyNotes);
-        }
-
-        // test
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<IActionResult> Me()
-        {
-            var x = 1;
-            return Ok();
         }
     }
 }

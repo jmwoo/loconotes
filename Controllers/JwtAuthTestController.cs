@@ -1,15 +1,22 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Linq;
+using loconotes.Models.User;
+using loconotes.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace loconotes.Controllers
 {
     [Route("api/test")]
-    public class JwtAuthTestController : Controller
+    [Authorize]
+    public class JwtAuthTestController : BaseIdentityController
     {
         private readonly JsonSerializerSettings _serializerSettings;
 
-        public JwtAuthTestController()
+        public JwtAuthTestController(
+        )
         {
             _serializerSettings = new JsonSerializerSettings
             {
@@ -18,15 +25,11 @@ namespace loconotes.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public IActionResult Get()
         {
-            var response = new
-            {
-                made_it = "hi sacks"
-            };
+            var user = GetApplicationUser();
 
-            var json = JsonConvert.SerializeObject(response, _serializerSettings);
+            var json = JsonConvert.SerializeObject(user, _serializerSettings);
             return new OkObjectResult(json);
         }
     }

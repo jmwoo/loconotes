@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using loconotes.Models.Auth;
 using loconotes.Models.User;
 using System.IdentityModel.Tokens.Jwt;
+using loconotes.Services;
 
 namespace loconotes.Controllers
 {
@@ -19,8 +20,13 @@ namespace loconotes.Controllers
         private readonly JwtIssuerOptions _jwtOptions;
         private readonly ILogger _logger;
         private readonly JsonSerializerSettings _serializerSettings;
+        private readonly ILoginService _loginService;
 
-        public JwtController(IOptions<JwtIssuerOptions> jwtOptions, ILoggerFactory loggerFactory)
+        public JwtController(
+            IOptions<JwtIssuerOptions> jwtOptions,
+            ILoggerFactory loggerFactory,
+            ILoginService loginService
+        )
         {
             _jwtOptions = jwtOptions.Value;
             ThrowIfInvalidOptions(_jwtOptions);
@@ -31,34 +37,36 @@ namespace loconotes.Controllers
             {
                 Formatting = Formatting.Indented
             };
+
+            _loginService = loginService;
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Get([FromForm] ApplicationUser applicationUser)
+        public async Task<IActionResult> Get([FromForm] UserLogin userLogin)
         {
-            var identity = await GetClaimsIdentity(applicationUser);
-            if (identity == null)
+            var user = await _loginService.Login(userLogin);
+
+            if (user == null)
             {
-                _logger.LogInformation($"Invalid username ({applicationUser.Username}) or password ({applicationUser.Password})");
+                _logger.LogInformation($"Invalid username ({userLogin.Username}) or password ({userLogin.Password})");
                 return BadRequest("Invalid credentials");
             }
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, applicationUser.Username),
-                new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator()),
-                new Claim(JwtRegisteredClaimNames.Iat,
-                          ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(),
-                          ClaimValueTypes.Integer64),
-                identity.FindFirst("DisneyCharacter")
-            };
 
             // Create the JWT security token and encode it.
             var jwt = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
-                claims: claims,
+                claims: new[]
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, userLogin.Username),
+                    new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator()),
+                    new Claim(JwtRegisteredClaimNames.Iat,
+                              ToUnixEpochDate(_jwtOptions.IssuedAt).ToString(),
+                              ClaimValueTypes.Integer64),
+                    new Claim(CustomClaimTypes.Username, user.Username),
+                    new Claim(CustomClaimTypes.UserId, user.Id.ToString()),
+                },
                 notBefore: _jwtOptions.NotBefore,
                 expires: _jwtOptions.Expiration,
                 signingCredentials: _jwtOptions.SigningCredentials);
@@ -101,35 +109,5 @@ namespace loconotes.Controllers
           => (long)Math.Round((date.ToUniversalTime() -
                                new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero))
                               .TotalSeconds);
-
-        /// <summary>
-        /// IMAGINE BIG RED WARNING SIGNS HERE!
-        /// You'd want to retrieve claims through your claims provider
-        /// in whatever way suits you, the below is purely for demo purposes!
-        /// </summary>
-        private static Task<ClaimsIdentity> GetClaimsIdentity(ApplicationUser user)
-        {
-            if (user.Username == "sacks" &&
-                user.Password == "sackface123")
-            {
-                return Task.FromResult(new ClaimsIdentity(
-                  new GenericIdentity(user.Username, "Token"),
-                  new[]
-                  {
-                    new Claim("DisneyCharacter", "IamMickey")
-                  }));
-            }
-
-            if (user.Username == "NotMickeyMouse" &&
-                user.Password == "MickeyMouseIsBoss123")
-            {
-                return Task.FromResult(new ClaimsIdentity(
-                  new GenericIdentity(user.Username, "Token"),
-                  new Claim[] { }));
-            }
-
-            // Credentials are invalid, or account doesn't exist
-            return Task.FromResult<ClaimsIdentity>(null);
-        }
     }
 }
