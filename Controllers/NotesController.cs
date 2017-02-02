@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace loconotes.Controllers
 {
     [Route("api/notes")]
-    [Authorize]
     public class NotesController : BaseIdentityController
     {
         private readonly INoteService _noteService;
@@ -25,6 +24,7 @@ namespace loconotes.Controllers
         }
 
         [HttpGet("")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -39,6 +39,7 @@ namespace loconotes.Controllers
         }
 
         [HttpPost("")]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] NoteCreateModel noteCreateModel)
         {
             var user = GetApplicationUser();
@@ -61,13 +62,16 @@ namespace loconotes.Controllers
         }
 
         [HttpPost("{id:int}/vote")]
+        [Authorize]
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
+            var user = GetApplicationUser();
             var note = await _noteService.Vote(id, voteModel).ConfigureAwait(false);
             return Ok(note);
         }
 
         [HttpPost("nearby")]
+        [AllowAnonymous]
         public async Task<IActionResult> Nearby([FromBody] NoteSearchRequest noteSearchRequest)
         {
             if (!TryValidateModel(noteSearchRequest))

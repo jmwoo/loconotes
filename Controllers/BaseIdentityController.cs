@@ -11,17 +11,26 @@ namespace loconotes.Controllers
     {
         public ApplicationUser GetApplicationUser()
         {
-            var claims = HttpContext.User.Claims.ToArray();
+            // TODO: throw unauthorized if no user or claims
 
-            var applicationUser = new ApplicationUser();
+            try
+            {
+                var claims = HttpContext.User.Claims.ToArray();
 
-            var usernameClaim = claims.FirstOrDefault(c => c.Type == CustomClaimTypes.Username);
-            var userIdClaim = claims.FirstOrDefault(c => c.Type == CustomClaimTypes.UserId);
+                var applicationUser = new ApplicationUser();
 
-            applicationUser.Username = usernameClaim?.Value;
-            applicationUser.Id = Convert.ToInt32(userIdClaim?.Value ?? "0");
+                var usernameClaim = claims.FirstOrDefault(c => c.Type == CustomClaimTypes.Username);
+                var userIdClaim = claims.FirstOrDefault(c => c.Type == CustomClaimTypes.UserId);
 
-            return applicationUser;
+                applicationUser.Username = usernameClaim?.Value;
+                applicationUser.Id = Convert.ToInt32(userIdClaim?.Value ?? "0");
+
+                return applicationUser;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

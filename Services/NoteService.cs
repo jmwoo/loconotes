@@ -43,7 +43,6 @@ namespace loconotes.Services
         {
             try
             {
-
                 _dbContext.Notes.Add(note);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 return note.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => note.UserId == u.Id));

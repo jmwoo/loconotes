@@ -1,4 +1,5 @@
 ﻿using System;
+using loconotes.Models.User;
 
 namespace loconotes.Models.Note
 {
@@ -13,6 +14,6 @@ namespace loconotes.Models.Note
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
         public int Radius { get; set; }
-        public string Author { get; set; }
+        public UserNoteViewModel User { get; set; }
     }
 }

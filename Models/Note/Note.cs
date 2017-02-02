@@ -64,7 +64,11 @@ namespace loconotes.Models.Note
                 Latitude = this.Latitude,
                 Longitude = this.Longitude,
                 Radius = this.Radius,
-                Author = user.Username
+                User = new UserNoteViewModel
+                {
+                    Uid = user.Uid,
+                    Username = user.Username
+                }
             };
         }
     }
