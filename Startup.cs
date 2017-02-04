@@ -44,6 +44,8 @@ namespace loconotes
             // Add framework services.
             services.AddOptions();
 
+            services.AddMemoryCache();
+
             services.AddDbContext<LoconotesDbContext>(options =>
                 options.UseSqlServer(Configuration.GetSection("Data")["LoconotesConnectionString"]));
 
