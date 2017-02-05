@@ -9,5 +9,6 @@ namespace loconotes.Models.User
     {
         public static string Username => "username";
         public static string UserId => "userid";
+        public static string UserUid => "useruid";
     }
 }
