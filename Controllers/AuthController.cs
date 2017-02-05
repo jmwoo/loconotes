@@ -19,15 +19,18 @@ namespace loconotes.Controllers
     {
         private readonly IJwtService _jwtService;
         private readonly ILoginService _loginService;
+        private readonly ISignupService _signupService;
 
         public AuthController(
             IJwtService jwtService,
-            ILoginService loginService
+            ILoginService loginService,
+            ISignupService signupService
         )
         {
 
             _loginService = loginService;
             _jwtService = jwtService;
+            _signupService = signupService;
         }
 
         [HttpPost]
@@ -43,16 +46,24 @@ namespace loconotes.Controllers
             }
 
             var jwtResult = _jwtService.MakeJwt(user);
-
             return Ok(jwtResult);
         }
 
         [HttpPost]
         [AllowAnonymous]
         [Route("signup")]
-        public async Task<IActionResult> Signup([FromBody] UserLogin userLogin)
+        public async Task<IActionResult> Signup([FromBody] UserSignup userSignup)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user = await _signupService.Signup(userSignup).ConfigureAwait(false);
+                var jwtResult = _jwtService.MakeJwt(user);
+                return Ok(jwtResult);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

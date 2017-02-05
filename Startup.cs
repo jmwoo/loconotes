@@ -82,6 +82,7 @@ namespace loconotes
             services.AddTransient<ILoginService, LoginService>();
             services.AddTransient<INotesCacheProvider, NotesCacheProvider>();
             services.AddTransient<IJwtService, JwtService>();
+            services.AddTransient<ISignupService, SignupService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
