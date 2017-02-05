@@ -8,11 +8,11 @@ using Note = loconotes.Models.Note.Note;
 
 namespace loconotes.Models.Cache
 {
-    public interface INotesCacheProvider : ICacheProvider<IEnumerable<Note.Note>>
+    public interface INotesCacheProvider : ICacheProvider<List<Note.Note>>
     {
     }
 
-    public class NotesCacheProvider : CacheProvider<IEnumerable<Note.Note>>, INotesCacheProvider
+    public class NotesCacheProvider : CacheProvider<List<Note.Note>>, INotesCacheProvider
     {
         public NotesCacheProvider(
             IMemoryCache memoryCache

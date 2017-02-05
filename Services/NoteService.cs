@@ -36,12 +36,12 @@ namespace loconotes.Services
 
         public async Task<IEnumerable<NoteViewModel>> GetAll()
         {
-            var allNotes = _notesCacheProvider.Get();
+            IEnumerable<Note> allNotes = _notesCacheProvider.Get();
 
             if (allNotes == null)
             {
                 allNotes = _dbContext.Notes;
-                _notesCacheProvider.Set(allNotes);
+                _notesCacheProvider.Set(allNotes.ToList());
             }
 
             return allNotes
@@ -87,6 +87,7 @@ namespace loconotes.Services
             if (allNotes == null)
             {
                 allNotes = _dbContext.Notes.AsQueryable();
+                _notesCacheProvider.Set(allNotes.ToList());
             }
 
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
