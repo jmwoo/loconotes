@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
 using loconotes.Business.GeoLocation;
 using loconotes.Data;
+using loconotes.Models.Cache;
 using loconotes.Models.Note;
 using loconotes.Models.User;
 using Microsoft.EntityFrameworkCore;
@@ -22,17 +23,26 @@ namespace loconotes.Services
     public class NoteService : INoteService
     {
         private readonly LoconotesDbContext _dbContext;
+        private readonly INotesCacheProvider _notesCacheProvider;
 
         public NoteService(
-            LoconotesDbContext dbContext
+            LoconotesDbContext dbContext,
+            INotesCacheProvider notesCacheProvider
         )
         {
             _dbContext = dbContext;
+            _notesCacheProvider = notesCacheProvider;
         }
 
         public async Task<IEnumerable<NoteViewModel>> GetAll()
         {
-            var allNotes = _dbContext.Notes;
+            var allNotes = _notesCacheProvider.Get();
+
+            if (allNotes == null)
+            {
+                allNotes = _dbContext.Notes;
+                _notesCacheProvider.Set(allNotes);
+            }
 
             return allNotes
                 .OrderByDescending(n => n.DateCreated)
@@ -45,6 +55,7 @@ namespace loconotes.Services
             {
                 _dbContext.Notes.Add(note);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _notesCacheProvider.Clear();
                 return note.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => note.UserId == u.Id));
             }
             catch (DbUpdateException updateException)
@@ -60,6 +71,7 @@ namespace loconotes.Services
                 var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
                 note.Score += Convert.ToInt32(voteModel.Vote);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                _notesCacheProvider.Clear();
                 return note;
             }
             catch (DbUpdateException updateException)
@@ -70,10 +82,17 @@ namespace loconotes.Services
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
         {
+            var allNotes = _notesCacheProvider.Get()?.AsQueryable();
+
+            if (allNotes == null)
+            {
+                allNotes = _dbContext.Notes.AsQueryable();
+            }
+
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
 
-            var nearbyNotes = _dbContext.Notes.AsQueryable().WhereInGeoCodeRange(new GeoCodeRange
+            var nearbyNotes = allNotes.WhereInGeoCodeRange(new GeoCodeRange
             {
                 MinimumLatitude = geoCodeRange.MinimumLatitude,
                 MaximumLatitude = geoCodeRange.MaximumLatitude,

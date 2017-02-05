@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using loconotes.Data;
 using loconotes.Models.Auth;
+using loconotes.Models.Cache;
+using loconotes.Models.Note;
 using loconotes.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +16,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace loconotes
@@ -33,7 +37,7 @@ namespace loconotes
         }
 
         // TODO: put in environment settings
-        private const string SecretKey = "sackfacejimsackloconotes";
+        private const string SecretKey = "DACEC9A8-2B57-469F-900A-5A4976C9EF20";
         private readonly SymmetricSecurityKey _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
 
         public IConfigurationRoot Configuration { get; }
@@ -76,6 +80,7 @@ namespace loconotes
             // application services
             services.AddTransient<INoteService, NoteService>();
             services.AddTransient<ILoginService, LoginService>();
+            services.AddTransient<INotesCacheProvider, NotesCacheProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
