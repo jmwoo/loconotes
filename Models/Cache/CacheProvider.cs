@@ -18,19 +18,22 @@ namespace loconotes.Services
     {
         private readonly IMemoryCache _cache;
         private readonly string _cacheKey;
+        private readonly TimeSpan _absoluteExpirationRelativeToNow;
 
         protected CacheProvider(
             IMemoryCache memoryCache,
-            string cacheKey
+            string cacheKey,
+            TimeSpan absoluteExpirationRelativeToNow
         )
         {
             _cache = memoryCache;
             _cacheKey = cacheKey;
+            _absoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
         }
 
         public T Set(T value)
         {
-            return _cache.Set(_cacheKey, value);
+            return _cache.Set(_cacheKey, value, _absoluteExpirationRelativeToNow);
         }
 
         public T Get()

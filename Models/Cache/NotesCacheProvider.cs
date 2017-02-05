@@ -16,7 +16,10 @@ namespace loconotes.Models.Cache
     {
         public NotesCacheProvider(
             IMemoryCache memoryCache
-            ) : base(memoryCache, CacheKeys.NotesCacheKey)
+            ) : base(
+                memoryCache, 
+                CacheKeys.NotesCacheKey, 
+                TimeSpan.FromHours(1))
         {
         }
     }
