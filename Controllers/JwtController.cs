@@ -43,7 +43,7 @@ namespace loconotes.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Get([FromForm] UserLogin userLogin)
+        public async Task<IActionResult> Get([FromBody] UserLogin userLogin)
         {
             var user = await _loginService.Login(userLogin);
 
