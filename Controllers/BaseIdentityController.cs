@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using loconotes.Models.User;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace loconotes.Controllers
 {
     public class BaseIdentityController : Controller
     {
+        [Route("auth/me")]
+        [HttpGet]
         public ApplicationUser GetApplicationUser()
         {
             // TODO: throw unauthorized if no user or claims
