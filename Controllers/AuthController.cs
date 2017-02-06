@@ -45,7 +45,7 @@ namespace loconotes.Controllers
                 return BadRequest("Invalid credentials");
             }
 
-            var jwtResult = _jwtService.MakeJwt(user);
+            var jwtResult = await _jwtService.MakeJwt(user).ConfigureAwait(false);
             return Ok(jwtResult);
         }
 

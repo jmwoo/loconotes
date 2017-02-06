@@ -28,6 +28,9 @@ namespace loconotes.Services
 
         [JsonProperty(PropertyName = "uid")]
         public string Uid { get; set; }
+
+        [JsonProperty(PropertyName = "username")]
+        public string Username { get; set; }
     }
 
     public class JwtService : IJwtService
@@ -71,7 +74,8 @@ namespace loconotes.Services
             {
                 AccessToken = encodedJwt,
                 ExpiresIn = (int) _jwtOptions.ValidFor.TotalSeconds,
-                Uid = user.Uid.ToString()
+                Uid = user.Uid.ToString(),
+                Username = user.Username
             };
         }
 
