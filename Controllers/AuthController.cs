@@ -27,7 +27,6 @@ namespace loconotes.Controllers
             ISignupService signupService
         )
         {
-
             _loginService = loginService;
             _jwtService = jwtService;
             _signupService = signupService;
@@ -57,7 +56,7 @@ namespace loconotes.Controllers
             try
             {
                 var user = await _signupService.Signup(userSignup).ConfigureAwait(false);
-                var jwtResult = _jwtService.MakeJwt(user);
+                var jwtResult = await _jwtService.MakeJwt(user).ConfigureAwait(false);
                 return Ok(jwtResult);
             }
             catch (Exception)
