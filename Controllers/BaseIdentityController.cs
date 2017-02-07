@@ -11,9 +11,7 @@ namespace loconotes.Controllers
 {
     public class BaseIdentityController : Controller
     {
-        [Route("auth/me")]
-        [HttpGet]
-        public ApplicationUser GetApplicationUser()
+        protected ApplicationUser GetApplicationUser()
         {
             // TODO: throw unauthorized if no user or claims
 

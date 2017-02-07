@@ -82,18 +82,11 @@ namespace loconotes.Services
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
         {
-            var allNotes = _notesCacheProvider.Get()?.AsQueryable();
-
-            if (allNotes == null)
-            {
-                allNotes = _dbContext.Notes.AsQueryable();
-                _notesCacheProvider.Set(allNotes.ToList());
-            }
 
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
 
-            var nearbyNotes = allNotes.WhereInGeoCodeRange(new GeoCodeRange
+            var nearbyNotes = _dbContext.Notes.AsQueryable().WhereInGeoCodeRange(new GeoCodeRange
             {
                 MinimumLatitude = geoCodeRange.MinimumLatitude,
                 MaximumLatitude = geoCodeRange.MaximumLatitude,
