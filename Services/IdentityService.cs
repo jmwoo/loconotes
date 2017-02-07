@@ -28,6 +28,13 @@ namespace loconotes.Services
                 Password = "jimface123",
                 Uid = new Guid("C57263B8-7031-4703-81B4-8A659CFA4A57")
             },
+            new User
+            {
+                Id = 3,
+                Username = "jaron",
+                Password = "jaronface123",
+                Uid = new Guid("1E398326-04AF-46AE-A09E-01964E1BD311")
+            },
         };
     }
 
