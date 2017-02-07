@@ -49,10 +49,14 @@ namespace loconotes.Models.Note
 
         public int UserId { get; set; }
 
+        public bool IsAnonymous { get; set; }
+
 
         // TODO: move this to dedicated mapper
         public NoteViewModel ToNoteViewModel(User.User user)
         {
+            var userNoteViewModel = this.IsAnonymous ? null : new UserNoteViewModel { Uid = user.Uid, Username = user.Username};
+
             return new NoteViewModel
             {
                 Id = this.Id,
@@ -64,11 +68,7 @@ namespace loconotes.Models.Note
                 Latitude = this.Latitude,
                 Longitude = this.Longitude,
                 Radius = this.Radius,
-                User = new UserNoteViewModel
-                {
-                    Uid = user.Uid,
-                    Username = user.Username
-                }
+                User = userNoteViewModel,
             };
         }
     }
