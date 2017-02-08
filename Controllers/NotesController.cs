@@ -65,6 +65,9 @@ namespace loconotes.Controllers
         [Authorize]
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
+            if (!TryValidateModel(voteModel))
+                return BadRequest();
+
             var user = GetApplicationUser();
             voteModel.UserId = user.Id;
 
