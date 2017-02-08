@@ -92,7 +92,6 @@ namespace loconotes.Services
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
         {
-
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
 
