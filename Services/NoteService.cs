@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
 using loconotes.Business.GeoLocation;
 using loconotes.Data;
+using loconotes.Models;
 using loconotes.Models.Cache;
 using loconotes.Models.Note;
 using loconotes.Models.User;
@@ -69,7 +70,16 @@ namespace loconotes.Services
             try
             {
                 var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
+
+                _dbContext.Votes.Add(new Vote
+                {
+                    NoteId = note.Id,
+                    UserId = voteModel.UserId,
+                    Value = (int) voteModel.Vote
+                });
+
                 note.Score += Convert.ToInt32(voteModel.Vote);
+
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 _notesCacheProvider.Clear();
                 return note;

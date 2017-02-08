@@ -66,8 +66,17 @@ namespace loconotes.Controllers
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
             var user = GetApplicationUser();
-            var note = await _noteService.Vote(id, voteModel).ConfigureAwait(false);
-            return Ok(note);
+            voteModel.UserId = user.Id;
+
+            try
+            {
+                var note = await _noteService.Vote(id, voteModel).ConfigureAwait(false);
+                return Ok(note);
+            }
+            catch (ConflictException)
+            {
+                return BadRequest("Invalid vote");
+            }
         }
 
         [HttpPost("nearby")]

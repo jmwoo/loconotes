@@ -14,5 +14,7 @@ namespace loconotes.Data
         }
 
         public DbSet<Note> Notes { get; set; }
+
+        public DbSet<Models.Vote> Votes { get; set; }
     }
 }

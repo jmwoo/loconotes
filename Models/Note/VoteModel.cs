@@ -1,7 +1,12 @@
-﻿namespace loconotes.Models.Note
+﻿using Newtonsoft.Json;
+
+namespace loconotes.Models.Note
 {
     public class VoteModel
     {
-        public Vote Vote { get; set; }
+        public VoteEnum Vote { get; set; }
+        
+        [JsonIgnore]
+        public int UserId { get; set; }
     }
 }
