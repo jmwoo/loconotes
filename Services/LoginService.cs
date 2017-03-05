@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using loconotes.Models.User;
-using System.Security.Principal;
 
 namespace loconotes.Services
 {

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using loconotes.Business.GeoLocation;
 using loconotes.Models.User;
-using loconotes.Services;
 using Newtonsoft.Json;
 
 namespace loconotes.Models.Note

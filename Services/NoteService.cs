@@ -8,7 +8,6 @@ using loconotes.Data;
 using loconotes.Models;
 using loconotes.Models.Cache;
 using loconotes.Models.Note;
-using loconotes.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services

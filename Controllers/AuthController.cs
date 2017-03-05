@@ -1,15 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using loconotes.Models.Auth;
 using loconotes.Models.User;
-using System.IdentityModel.Tokens.Jwt;
 using loconotes.Services;
 
 namespace loconotes.Controllers
