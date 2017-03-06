@@ -2,27 +2,24 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using loconotes.Business.Exceptions;
 using loconotes.Models.User;
 using loconotes.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Controllers
 {
     [Route("api/auth")]
     public class AuthController : Controller
     {
-        private readonly IJwtService _jwtService;
-        private readonly ILoginService _loginService;
-        private readonly ISignupService _signupService;
+        private readonly IAuthService _authService;
 
         public AuthController(
-            IJwtService jwtService,
-            ILoginService loginService,
-            ISignupService signupService
+            IAuthService authService
         )
         {
-            _loginService = loginService;
-            _jwtService = jwtService;
-            _signupService = signupService;
+            _authService = authService;
         }
 
         [HttpPost]
@@ -30,14 +27,13 @@ namespace loconotes.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] UserLogin userLogin)
         {
-            var user = await _loginService.Login(userLogin);
+            var jwtResult = await _authService.Login(userLogin);
 
-            if (user == null)
+            if (jwtResult == null)
             {
                 return BadRequest("Invalid credentials");
             }
 
-            var jwtResult = await _jwtService.MakeJwt(user).ConfigureAwait(false);
             return Ok(jwtResult);
         }
 
@@ -48,13 +44,12 @@ namespace loconotes.Controllers
         {
             try
             {
-                var user = await _signupService.Signup(userSignup).ConfigureAwait(false);
-                var jwtResult = await _jwtService.MakeJwt(user).ConfigureAwait(false);
+                var jwtResult = await _authService.Signup(userSignup).ConfigureAwait(false);
                 return Ok(jwtResult);
             }
-            catch (Exception)
+            catch (ConflictException conflictException)
             {
-                throw;
+                return new StatusCodeResult(StatusCodes.Status409Conflict);
             }
         }
     }

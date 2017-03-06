@@ -10,9 +10,6 @@ namespace loconotes.Models.User
     {
         public string Username { get; set; }
 
-        [JsonIgnore]
-        public string Password { get; set; }
-
         public int Id { get; set; }
 
         public Guid Uid { get; set; }

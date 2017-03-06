@@ -74,10 +74,10 @@ namespace loconotes
 
             // application services
             services.AddTransient<INoteService, NoteService>();
-            services.AddTransient<ILoginService, LoginService>();
+            services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<INotesCacheProvider, NotesCacheProvider>();
             services.AddTransient<IJwtService, JwtService>();
-            services.AddTransient<ISignupService, SignupService>();
+            services.AddTransient<ICryptoService, CryptoService>();
 
             services.AddSwaggerGen(c =>
             {

@@ -15,5 +15,6 @@ namespace loconotes.Models.Note
         public decimal Longitude { get; set; }
         public int Radius { get; set; }
         public UserNoteViewModel User { get; set; }
+        public VoteEnum MyVote { get; set; }
     }
 }

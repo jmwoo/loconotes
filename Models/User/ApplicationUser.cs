@@ -9,5 +9,6 @@ namespace loconotes.Models.User
     {
         public string Username { get; set; }
         public int Id { get; set; }
+        public Guid Uid { get; set; }
     }
 }

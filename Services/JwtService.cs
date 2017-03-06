@@ -12,10 +12,10 @@ namespace loconotes.Services
 {
     public interface IJwtService
     {
-        Task<JwtRestult> MakeJwt(User user);
+        Task<JwtResult> MakeJwt(User user);
     }
 
-    public class JwtRestult
+    public class JwtResult
     {
         [JsonProperty(PropertyName = "access_token")]
         public string AccessToken { get; set; }
@@ -35,16 +35,14 @@ namespace loconotes.Services
         private readonly JwtIssuerOptions _jwtOptions;
 
         public JwtService(
-            IOptions<JwtIssuerOptions> jwtOptions,
-            ILoggerFactory loggerFactory,
-            ILoginService loginService
+            IOptions<JwtIssuerOptions> jwtOptions
         )
         {
             _jwtOptions = jwtOptions.Value;
             ThrowIfInvalidOptions(_jwtOptions);
         }
 
-        public async Task<JwtRestult> MakeJwt(User user)
+        public async Task<JwtResult> MakeJwt(User user)
         {
             // Create the JWT security token and encode it.
             var jwt = new JwtSecurityToken(
@@ -67,7 +65,7 @@ namespace loconotes.Services
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-            return new JwtRestult
+            return new JwtResult
             {
                 AccessToken = encodedJwt,
                 ExpiresIn = (int) _jwtOptions.ValidFor.TotalSeconds,

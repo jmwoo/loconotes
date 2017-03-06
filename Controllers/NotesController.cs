@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
 using loconotes.Models.Note;
@@ -6,10 +7,13 @@ using loconotes.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace loconotes.Controllers
 {
     [Route("api/notes")]
+    [Produces("application/json")]
     public class NotesController : BaseIdentityController
     {
         private readonly INoteService _noteService;
@@ -28,7 +32,8 @@ namespace loconotes.Controllers
             try
             {
                 var allNotes = await _noteService.GetAll().ConfigureAwait(false);
-                return Ok(allNotes);
+                var serializedNearbyNotes = JsonConvert.SerializeObject(allNotes, Formatting.Indented, new StringEnumConverter());
+                return Ok(serializedNearbyNotes);
             }
             catch (Exception)
             {
@@ -45,20 +50,19 @@ namespace loconotes.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = GetApplicationUser();
-            var noteToCreate = noteCreateModel.ToNote(user);
-
-            if (!TryValidateModel(noteToCreate))
-            {
-                return BadRequest(ModelState);
-            }
+            var applicationUser = GetApplicationUser();
 
             try
             {
-                var note = await _noteService.Create(noteToCreate).ConfigureAwait(false);
-                return Created("Note", note);
+                var note = await _noteService.Create(applicationUser, noteCreateModel).ConfigureAwait(false);
+                var serializedNote = JsonConvert.SerializeObject(note, Formatting.Indented, new StringEnumConverter());
+                return Created("Note", serializedNote);
             }
-            catch (ConflictException)
+            catch (ValidationException validationException)
+            {
+                return BadRequest(validationException.Message);
+            }
+            catch (ConflictException conflictException)
             {
                 return new StatusCodeResult(StatusCodes.Status409Conflict);
             }
@@ -71,13 +75,14 @@ namespace loconotes.Controllers
             if (voteModel == null || !TryValidateModel(voteModel))
                 return BadRequest(ModelState);
 
-            var user = GetApplicationUser();
-            voteModel.UserId = user.Id;
+            var applicationUser = GetApplicationUser();
+            voteModel.UserId = applicationUser.Id;
 
             try
             {
-                var note = await _noteService.Vote(id, voteModel).ConfigureAwait(false);
-                return Ok(note);
+                var note = await _noteService.Vote(applicationUser, id, voteModel).ConfigureAwait(false);
+                var serializedNote = JsonConvert.SerializeObject(note, Formatting.Indented, new StringEnumConverter());
+                return Ok(serializedNote);
             }
             catch (ConflictException)
             {
@@ -92,8 +97,10 @@ namespace loconotes.Controllers
             if (noteSearchRequest == null || !TryValidateModel(noteSearchRequest))
                 return BadRequest();
 
-            var nearybyNotes = await _noteService.Nearby(noteSearchRequest).ConfigureAwait(false);
-            return Ok(nearybyNotes);
+            var applicationUser = this.GetApplicationUser();
+            var nearybyNotes = await _noteService.Nearby(applicationUser, noteSearchRequest).ConfigureAwait(false);
+            var serializedNearbyNotes = JsonConvert.SerializeObject(nearybyNotes, Formatting.Indented, new StringEnumConverter());
+            return Ok(serializedNearbyNotes);
         }
     }
 }

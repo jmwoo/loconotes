@@ -8,6 +8,7 @@ using loconotes.Data;
 using loconotes.Models;
 using loconotes.Models.Cache;
 using loconotes.Models.Note;
+using loconotes.Models.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services
@@ -15,9 +16,9 @@ namespace loconotes.Services
     public interface INoteService
     {
         Task<IEnumerable<NoteViewModel>> GetAll();
-        Task<NoteViewModel> Create(Note note);
-        Task<Note> Vote(int id, VoteModel voteModel);
-        Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest);
+        Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel);
+        Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel);
+        Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
     }
 
     public class NoteService : INoteService
@@ -46,17 +47,19 @@ namespace loconotes.Services
 
             return allNotes
                 .OrderByDescending(n => n.DateCreated)
-                .Select(n => n.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => n.UserId == u.Id)));
+                .Select(n => n.ToNoteViewModel(null));
         }
 
-        public async Task<NoteViewModel> Create(Note note)
+        public async Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel)
         {
+            var noteToCreate = noteCreateModel.ToNote(applicationUser);
+
             try
             {
-                _dbContext.Notes.Add(note);
+                _dbContext.Notes.Add(noteToCreate);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 _notesCacheProvider.Clear();
-                return note.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => note.UserId == u.Id));
+                return noteToCreate.ToNoteViewModel(applicationUser);
             }
             catch (DbUpdateException updateException)
             {
@@ -64,11 +67,11 @@ namespace loconotes.Services
             }
         }
 
-        public async Task<Note> Vote(int id, VoteModel voteModel)
+        public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
         {
             try
             {
-                var note = await _dbContext.Notes.FindAsync(id).ConfigureAwait(false);
+                var note = await _dbContext.Notes.FindAsync(NoteId).ConfigureAwait(false);
 
                 _dbContext.Votes.Add(new Vote
                 {
@@ -81,7 +84,7 @@ namespace loconotes.Services
 
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 _notesCacheProvider.Clear();
-                return note;
+                return note.ToNoteViewModel(applicationUser, voteModel);
             }
             catch (DbUpdateException updateException)
             {
@@ -89,10 +92,12 @@ namespace loconotes.Services
             }
         }
 
-        public async Task<IEnumerable<NoteViewModel>> Nearby(NoteSearchRequest noteSearchRequest)
+        public async Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest)
         {
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
+
+            var userVotes = _dbContext.Votes.Where(v => v.UserId == applicationUser.Id);
 
             var nearbyNotes = _dbContext.Notes.AsQueryable().WhereInGeoCodeRange(new GeoCodeRange
             {
@@ -102,12 +107,15 @@ namespace loconotes.Services
                 MaximumLongitude = geoCodeRange.MaximumLongitude,
             });
 
+            // TODO: holy shit this is complicated
             var orderedNearbyNotes = nearbyNotes
                 .OrderBy(n =>
                         GeolocationHelpers.CalculateDistance(n.LatitudeD, n.LongitudeD, noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD,
                             GeolocationHelpers.DistanceType.Kilometers))
                 .Take(noteSearchRequest.Take)
-                .Select(n => n.ToNoteViewModel(IdentityService.Users.FirstOrDefault(u => n.UserId == u.Id)))
+                .Select(n => n.ToNoteViewModel(applicationUser, 
+                    userVotes.Select(v => v.NoteId).Contains(n.Id) ? new VoteModel { UserId = applicationUser.Id, Vote = (VoteEnum)userVotes.FirstOrDefault(v => v.NoteId == n.Id).Value } : null)
+                )
                 ;
 
             return orderedNearbyNotes;
