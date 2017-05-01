@@ -78,8 +78,9 @@ namespace loconotes
             services.AddTransient<INotesCacheProvider, NotesCacheProvider>();
             services.AddTransient<IJwtService, JwtService>();
             services.AddTransient<ICryptoService, CryptoService>();
+			services.AddTransient<IUserService, UserService>();
 
-            services.AddSwaggerGen(c =>
+			services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
