@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
@@ -9,6 +10,7 @@ using loconotes.Models;
 using loconotes.Models.Cache;
 using loconotes.Models.Note;
 using loconotes.Models.User;
+using Microsoft.AspNetCore.Server.Kestrel;
 using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services
@@ -19,6 +21,9 @@ namespace loconotes.Services
         Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel);
         Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel);
         Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
+		Task DeleteAll(ApplicationUser applicationUser);
+	    Task DeleteNote(ApplicationUser applicationUser, int noteId);
+
     }
 
     public class NoteService : INoteService
@@ -47,6 +52,7 @@ namespace loconotes.Services
 
             return allNotes
                 .OrderByDescending(n => n.DateCreated)
+				.Where(n => !n.IsDeleted)
                 .Select(n => n.ToNoteViewModel(null));
         }
 
@@ -67,11 +73,48 @@ namespace loconotes.Services
             }
         }
 
-        public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
+		public async Task DeleteAll(ApplicationUser applicationUser)
+		{
+			try
+			{
+				foreach (var note in _dbContext.Notes.Where(note => note.UserId == applicationUser.Id))
+				{
+					note.IsDeleted = true;
+				}
+				await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+				_notesCacheProvider.Clear();
+			}
+			catch (DbUpdateException updateException)
+			{
+				throw new ConflictException(updateException.Message, updateException);
+			}
+		}
+
+	    public async Task DeleteNote(ApplicationUser applicationUser, int noteId)
+	    {
+			try
+			{
+				var note = await _dbContext.Notes.FindAsync(noteId).ConfigureAwait(false);
+				note.IsDeleted = true;
+				await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+				_notesCacheProvider.Clear();
+			}
+			catch (DbUpdateException updateException)
+			{
+				throw new ConflictException(updateException.Message, updateException);
+			}
+		}
+
+	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
         {
             try
             {
                 var note = await _dbContext.Notes.FindAsync(NoteId).ConfigureAwait(false);
+
+	            if (note.IsDeleted)
+	            {
+					throw new NotFoundException();
+				}
 
                 _dbContext.Votes.Add(new Vote
                 {
@@ -112,6 +155,7 @@ namespace loconotes.Services
                 .OrderBy(n =>
                         GeolocationHelpers.CalculateDistance(n.LatitudeD, n.LongitudeD, noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD,
                             GeolocationHelpers.DistanceType.Kilometers))
+				.Where(n => !n.IsDeleted)
                 .Take(noteSearchRequest.Take)
                 .Select(n => n.ToNoteViewModel(applicationUser, 
                     userVotes.Select(v => v.NoteId).Contains(n.Id) ? new VoteModel { UserId = applicationUser.Id, Vote = (VoteEnum)userVotes.FirstOrDefault(v => v.NoteId == n.Id).Value } : null)

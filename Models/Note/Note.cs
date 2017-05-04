@@ -49,6 +49,8 @@ namespace loconotes.Models.Note
 
         public bool IsAnonymous { get; set; }
 
+		public bool IsDeleted { get; set; }
+
         // TODO: move this to dedicated mapper
         public NoteViewModel ToNoteViewModel(ApplicationUser applicationUser, VoteModel voteModel = null)
         {

@@ -29,11 +29,11 @@ namespace loconotes.Controllers
 			return await _userService.GetProfile(GetApplicationUser());
         }
 
-		[HttpPost]
+		[HttpPatch]
 		[Route("profile")]
-		public async Task<UserProfile> Post([FromBody] UpdateProfileModel updateProfileModel)
+		public async Task UpdateProfile([FromBody] UpdateProfileModel updateProfileModel)
 		{
-			return await _userService.UpdateProfile(GetApplicationUser(), updateProfileModel);
+			await _userService.UpdateProfile(GetApplicationUser(), updateProfileModel);
 		}
 	}
 }

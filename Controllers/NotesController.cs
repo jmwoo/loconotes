@@ -68,7 +68,24 @@ namespace loconotes.Controllers
             }
         }
 
-        [HttpPost("{id:int}/vote")]
+		[HttpDelete("")]
+		[Authorize]
+		public async Task<IActionResult> DeleteAll()
+		{
+			await _noteService.DeleteAll(GetApplicationUser());
+			return Ok();
+		}
+
+	    [HttpDelete("{id:int}")]
+	    [Authorize]
+	    public async Task<IActionResult> DeleteNote([FromRoute] int id)
+	    {
+		    await _noteService.DeleteNote(GetApplicationUser(), id).ConfigureAwait(false);
+		    return Ok();
+	    }
+
+
+		[HttpPost("{id:int}/vote")]
         [Authorize]
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
