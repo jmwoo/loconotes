@@ -22,18 +22,25 @@ namespace loconotes.Controllers
 			_userService = userService;
 		}
 
-        [HttpGet]
-		[Route("profile")]
+		[HttpGet]
+		[Route("me/profile")]
         public async Task<UserProfile> Get()
         {
 			return await _userService.GetProfile(GetApplicationUser());
         }
 
 		[HttpPatch]
-		[Route("profile")]
+		[Route("me/profile")]
 		public async Task UpdateProfile([FromBody] UpdateProfileModel updateProfileModel)
 		{
 			await _userService.UpdateProfile(GetApplicationUser(), updateProfileModel);
+		}
+
+		[HttpPatch]
+		[Route("me/password")]
+		public async Task UpdatePassword([FromBody] UpdatePasswordModel updatePasswordModel)
+		{
+			await _userService.UpdatePassword(GetApplicationUser(), updatePasswordModel);
 		}
 	}
 }

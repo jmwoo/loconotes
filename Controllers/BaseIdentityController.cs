@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace loconotes.Controllers
 {
-    public class BaseIdentityController : Controller
-    {
+    public class BaseIdentityController : BaseController
+	{
         protected ApplicationUser GetApplicationUser()
         {
             // TODO: throw unauthorized if no user or claims
@@ -33,7 +33,7 @@ namespace loconotes.Controllers
             }
             catch (Exception)
             {
-                throw;
+	            throw new UnauthorizedAccessException();
             }
         }
     }

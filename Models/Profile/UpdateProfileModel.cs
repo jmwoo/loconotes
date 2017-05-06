@@ -10,7 +10,5 @@ namespace loconotes.Models.Profile
 {
     public class UpdateProfileModel
     {
-	    [JsonProperty(PropertyName = "ChangePassword")]
-		public UpdatePasswordModel UpdatePasswordModel { get; set; }
 	}
 }

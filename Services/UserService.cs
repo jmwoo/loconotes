@@ -13,6 +13,7 @@ namespace loconotes.Services
 	{
 		Task UpdateProfile(ApplicationUser applicationUser, UpdateProfileModel updateProfileModel);
 		Task<UserProfile> GetProfile(ApplicationUser appUser);
+		Task UpdatePassword(ApplicationUser applicationUser, UpdatePasswordModel updatePasswordModel);
 	}
 
     public class UserService : IUserService
@@ -31,20 +32,24 @@ namespace loconotes.Services
 
 		public async Task UpdateProfile(ApplicationUser applicationUser, UpdateProfileModel updateProfileModel)
 		{
-			var userDto = await _dbContext.Users.FindAsync(applicationUser.Id);
+			throw new NotImplementedException();
+		}
 
-			// update password
-			if (updateProfileModel?.UpdatePasswordModel != null)
-			{
-				if (userDto.PasswordHash != _cryptoService.Hash(updateProfileModel.UpdatePasswordModel.CurrentPassword))
-				{
-					throw new ValidationException("Current password is incorrect"); // todo: somehow handle in controller and return BadRequest()
-				}
+	    public async Task UpdatePassword(ApplicationUser applicationUser, UpdatePasswordModel updatePasswordModel)
+	    {
+			if (updatePasswordModel == null)
+				throw new ValidationException(nameof(updatePasswordModel));
 
-				userDto.PasswordHash = _cryptoService.Hash(updateProfileModel.UpdatePasswordModel.NewPassword);
-			}
+		    var userDto = await _dbContext.Users.FindAsync(applicationUser.Id);
 
-			await _dbContext.SaveChangesAsync();
+			if (userDto.PasswordHash != _cryptoService.Hash(updatePasswordModel.CurrentPassword))
+		    {
+			    throw new ValidationException("Current password is incorrect"); // TODO: somehow handle in controller and return BadRequest()
+		    }
+
+		    userDto.PasswordHash = _cryptoService.Hash(updatePasswordModel.NewPassword);
+
+		    await _dbContext.SaveChangesAsync();
 		}
 
 		public async Task<UserProfile> GetProfile(ApplicationUser appUser)

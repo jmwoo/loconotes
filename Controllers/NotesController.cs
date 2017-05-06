@@ -32,8 +32,7 @@ namespace loconotes.Controllers
             try
             {
                 var allNotes = await _noteService.GetAll().ConfigureAwait(false);
-                var serializedNearbyNotes = JsonConvert.SerializeObject(allNotes, Formatting.Indented, new StringEnumConverter());
-                return Ok(serializedNearbyNotes);
+                return Ok(allNotes);
             }
             catch (Exception)
             {
@@ -55,8 +54,7 @@ namespace loconotes.Controllers
             try
             {
                 var note = await _noteService.Create(applicationUser, noteCreateModel).ConfigureAwait(false);
-                var serializedNote = JsonConvert.SerializeObject(note, Formatting.Indented, new StringEnumConverter());
-                return Created("Note", serializedNote);
+                return Created("Note", note);
             }
             catch (ValidationException validationException)
             {
@@ -98,8 +96,7 @@ namespace loconotes.Controllers
             try
             {
                 var note = await _noteService.Vote(applicationUser, id, voteModel).ConfigureAwait(false);
-                var serializedNote = JsonConvert.SerializeObject(note, Formatting.Indented, new StringEnumConverter());
-                return Ok(serializedNote);
+                return Ok(note);
             }
             catch (ConflictException)
             {
@@ -116,8 +113,7 @@ namespace loconotes.Controllers
 
             var applicationUser = this.GetApplicationUser();
             var nearybyNotes = await _noteService.Nearby(applicationUser, noteSearchRequest).ConfigureAwait(false);
-            var serializedNearbyNotes = JsonConvert.SerializeObject(nearybyNotes, Formatting.Indented, new StringEnumConverter());
-            return Ok(serializedNearbyNotes);
+            return Ok(nearybyNotes);
         }
     }
 }

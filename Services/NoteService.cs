@@ -95,6 +95,12 @@ namespace loconotes.Services
 			try
 			{
 				var note = await _dbContext.Notes.FindAsync(noteId).ConfigureAwait(false);
+
+				if (note.UserId != applicationUser.Id)
+				{
+					throw new UnauthorizedAccessException();
+				}
+
 				note.IsDeleted = true;
 				await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 				_notesCacheProvider.Clear();

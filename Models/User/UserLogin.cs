@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 
 namespace loconotes.Models.User
 {
-    public class UserLogin
+    public class UserLogin : UserSignup
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
     }
 }
