@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace loconotes.Services
 {
@@ -14,6 +15,7 @@ namespace loconotes.Services
 		Task UpdateProfile(ApplicationUser applicationUser, UpdateProfileModel updateProfileModel);
 		Task<UserProfile> GetProfile(ApplicationUser appUser);
 		Task UpdatePassword(ApplicationUser applicationUser, UpdatePasswordModel updatePasswordModel);
+		Task DeleteMe(ApplicationUser applicationUser);
 	}
 
     public class UserService : IUserService
@@ -52,7 +54,24 @@ namespace loconotes.Services
 		    await _dbContext.SaveChangesAsync();
 		}
 
-		public async Task<UserProfile> GetProfile(ApplicationUser appUser)
+	    public async Task DeleteMe(ApplicationUser applicationUser)
+	    {
+			throw new NotImplementedException();
+
+		    //var userDto = await _dbContext.Users.FindAsync(applicationUser.Id);
+
+		    //userDto.IsDeleted = true;
+		    //foreach (var n in _dbContext.Notes.Where(n => n.UserId == applicationUser.Id))
+		    //{
+			   // n.IsDeleted = true;
+		    //}
+
+		    //await _dbContext.SaveChangesAsync();
+
+			// TODO: we also need to figure out how to expire the jwt
+	    }
+
+	    public async Task<UserProfile> GetProfile(ApplicationUser appUser)
 		{
 			var userDto = await _dbContext.Users.FindAsync(appUser.Id);
 			

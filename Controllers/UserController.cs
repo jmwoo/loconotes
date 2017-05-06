@@ -26,7 +26,9 @@ namespace loconotes.Controllers
 		[Route("me")]
 		public async Task DeleteMe()
 		{
-			
+			throw new NotImplementedException();
+
+			//_userService.DeleteMe(ApplicationUser);
 		}
 
 		[HttpGet]

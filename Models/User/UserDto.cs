@@ -18,5 +18,7 @@ namespace loconotes.Models.User
         public string Username { get; set; }
 
         public string PasswordHash { get; set; }
+
+		public bool IsDeleted { get; set; }
     }
 }

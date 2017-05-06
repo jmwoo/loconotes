@@ -4,6 +4,7 @@
     [Uid] UNIQUEIDENTIFIER DEFAULT(NEWID()) NOT NULL,
 	[Username] VARCHAR(50) NOT NULL,
     [PasswordHash] VARCHAR(300) NOT NULL,
+	[IsDeleted] BIT NOT NULL DEFAULT(0)
 )
 
 GO

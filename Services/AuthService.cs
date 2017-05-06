@@ -35,7 +35,11 @@ namespace loconotes.Services
         {
             // TODO: validate login
 
-            var userDto = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == userLogin.Username).ConfigureAwait(false);
+            var userDto = await _dbContext.Users.FirstOrDefaultAsync(u => 
+				u.Username == userLogin.Username 
+				&& u.IsDeleted == false
+			).ConfigureAwait(false);
+
             if (userDto == null)
             {
                 return null;
