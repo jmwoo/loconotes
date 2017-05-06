@@ -49,11 +49,9 @@ namespace loconotes.Controllers
                 return BadRequest(ModelState);
             }
 
-            var applicationUser = GetApplicationUser();
-
             try
             {
-                var note = await _noteService.Create(applicationUser, noteCreateModel).ConfigureAwait(false);
+                var note = await _noteService.Create(ApplicationUser, noteCreateModel).ConfigureAwait(false);
                 return Created("Note", note);
             }
             catch (ValidationException validationException)
@@ -70,7 +68,7 @@ namespace loconotes.Controllers
 		[Authorize]
 		public async Task<IActionResult> DeleteAll()
 		{
-			await _noteService.DeleteAll(GetApplicationUser());
+			await _noteService.DeleteAll(ApplicationUser);
 			return Ok();
 		}
 
@@ -78,7 +76,7 @@ namespace loconotes.Controllers
 	    [Authorize]
 	    public async Task<IActionResult> DeleteNote([FromRoute] int id)
 	    {
-		    await _noteService.DeleteNote(GetApplicationUser(), id).ConfigureAwait(false);
+		    await _noteService.DeleteNote(ApplicationUser, id).ConfigureAwait(false);
 		    return Ok();
 	    }
 
@@ -90,7 +88,7 @@ namespace loconotes.Controllers
             if (voteModel == null || !TryValidateModel(voteModel))
                 return BadRequest(ModelState);
 
-            var applicationUser = GetApplicationUser();
+            var applicationUser = ApplicationUser;
             voteModel.UserId = applicationUser.Id;
 
             try
@@ -111,7 +109,7 @@ namespace loconotes.Controllers
             if (noteSearchRequest == null || !TryValidateModel(noteSearchRequest))
                 return BadRequest();
 
-            var applicationUser = this.GetApplicationUser();
+            var applicationUser = this.ApplicationUser;
             var nearybyNotes = await _noteService.Nearby(applicationUser, noteSearchRequest).ConfigureAwait(false);
             return Ok(nearybyNotes);
         }
