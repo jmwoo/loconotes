@@ -12,6 +12,7 @@ using loconotes.Models.Note;
 using loconotes.Models.User;
 using Microsoft.AspNetCore.Server.Kestrel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace loconotes.Services
 {
@@ -29,31 +30,24 @@ namespace loconotes.Services
     public class NoteService : INoteService
     {
         private readonly LoconotesDbContext _dbContext;
-        private readonly INotesCacheProvider _notesCacheProvider;
 
         public NoteService(
-            LoconotesDbContext dbContext,
-            INotesCacheProvider notesCacheProvider
+            LoconotesDbContext dbContext
         )
         {
             _dbContext = dbContext;
-            _notesCacheProvider = notesCacheProvider;
         }
 
         public async Task<IEnumerable<NoteViewModel>> GetAll()
         {
-            IEnumerable<Note> allNotes = _notesCacheProvider.Get();
+	        var notes = await _dbContext.Notes
+		        .Include(n => n.User)
+		        .Where(n => !n.IsDeleted)
+		        .OrderByDescending(n => n.DateCreated)
+		        .Select(n => n.ToNoteViewModel(null, null))
+		        .ToListAsync();
 
-            if (allNotes == null)
-            {
-                allNotes = _dbContext.Notes;
-                _notesCacheProvider.Set(allNotes.ToList());
-            }
-
-            return allNotes
-                .OrderByDescending(n => n.DateCreated)
-				.Where(n => !n.IsDeleted)
-                .Select(n => n.ToNoteViewModel(null));
+	        return notes;
         }
 
         public async Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel)
@@ -62,11 +56,14 @@ namespace loconotes.Services
 
             try
             {
-                _dbContext.Notes.Add(noteToCreate);
+                EntityEntry<Note> createdEntity = _dbContext.Notes.Add(noteToCreate);
+
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-                _notesCacheProvider.Clear();
-                return noteToCreate.ToNoteViewModel(applicationUser);
-            }
+
+				//return (await _dbContext.Notes.Include(n => n.User).FindAsync(createdEntity.Entity.Id)).ToNoteViewModel(applicationUser, null);
+	            var note = (await _dbContext.Notes.Include(n => n.User).FirstAsync(n => n.Id == createdEntity.Entity.Id));
+				return note.ToNoteViewModel(applicationUser, null);
+			}
             catch (DbUpdateException updateException)
             {
                 throw new ConflictException(updateException.Message, updateException);
@@ -80,7 +77,6 @@ namespace loconotes.Services
 				note.IsDeleted = true;
 			}
 			await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-			_notesCacheProvider.Clear();
 		}
 
 	    public async Task DeleteNote(ApplicationUser applicationUser, int noteId)
@@ -94,12 +90,11 @@ namespace loconotes.Services
 
 		    note.IsDeleted = true;
 		    await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-		    _notesCacheProvider.Clear();
 		}
 
 	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
         {
-			var note = await _dbContext.Notes.FindAsync(NoteId).ConfigureAwait(false);
+			var note = await _dbContext.Notes.Include(n => n.User).FirstAsync(n => n.Id == NoteId).ConfigureAwait(false);
 
 	        if (note.IsDeleted)
 	        {
@@ -116,7 +111,6 @@ namespace loconotes.Services
 	        note.Score += Convert.ToInt32(voteModel.Vote);
 
 	        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-	        _notesCacheProvider.Clear();
 	        return note.ToNoteViewModel(applicationUser, voteModel);
 		}
 
@@ -137,6 +131,7 @@ namespace loconotes.Services
 
             // TODO: holy shit this is complicated
             var orderedNearbyNotes = nearbyNotes
+				.Include(n => n.User)
                 .OrderBy(n =>
                         GeolocationHelpers.CalculateDistance(n.LatitudeD, n.LongitudeD, noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD,
                             GeolocationHelpers.DistanceType.Kilometers))

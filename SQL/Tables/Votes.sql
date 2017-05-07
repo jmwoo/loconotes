@@ -1,16 +1,4 @@
-﻿
-GO
-
-ALTER TABLE [dbo].[Votes] DROP CONSTRAINT [DF__Votes__DateCreat__3B40CD36]
-GO
-
-ALTER TABLE [dbo].[Votes] DROP CONSTRAINT [DF__Votes__Uid__3A4CA8FD]
-GO
-
-DROP TABLE [dbo].[Votes]
-GO
-
-CREATE TABLE [dbo].[Votes](
+﻿CREATE TABLE [dbo].[Votes](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Uid] [uniqueidentifier] NOT NULL,
 	[NoteId] [int] NOT NULL,
@@ -36,4 +24,16 @@ GO
 ALTER TABLE [dbo].[Votes] ADD  DEFAULT (getutcdate()) FOR [DateCreated]
 GO
 
+ALTER TABLE [dbo].[Votes]  WITH CHECK ADD  CONSTRAINT [FK_Votes_Users] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
 
+ALTER TABLE [dbo].[Votes] CHECK CONSTRAINT [FK_Votes_Users]
+GO
+
+ALTER TABLE [dbo].[Votes]  WITH CHECK ADD  CONSTRAINT [FK_Votes_Notes] FOREIGN KEY([NoteId])
+REFERENCES [dbo].[Notes] ([Id])
+GO
+
+ALTER TABLE [dbo].[Votes] CHECK CONSTRAINT [FK_Votes_Notes]
+GO

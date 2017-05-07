@@ -1,25 +1,5 @@
-﻿
-GO
+﻿USE [sackfacedb]
 
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF__Notes__IsAnonymo__282DF8C2]
-GO
-
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF__Notes__UserId__2739D489]
-GO
-
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF__Notes__Subject__0E6E26BF]
-GO
-
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF__Notes__Score__0D7A0286]
-GO
-
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF_DateCreated]
-GO
-
-ALTER TABLE [dbo].[Notes] DROP CONSTRAINT [DF__Notes__Uid__0B91BA14]
-GO
-
-DROP TABLE [dbo].[Notes]
 GO
 
 CREATE TABLE [dbo].[Notes](
@@ -34,11 +14,21 @@ CREATE TABLE [dbo].[Notes](
 	[Subject] [varchar](max) NULL,
 	[UserId] [int] NOT NULL,
 	[IsAnonymous] [bit] NOT NULL,
+	[IsDeleted] [bit] NOT NULL,
  CONSTRAINT [Ct_ID] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
 )
+
+go
+CREATE NONCLUSTERED INDEX [IX_LatLon] ON [dbo].[Notes]
+(
+    [Latitude] ASC,
+    [Longitude] ASC,
+	[IsDeleted] Asc
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = ON, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+GO
 
 GO
 
@@ -58,5 +48,15 @@ ALTER TABLE [dbo].[Notes] ADD  DEFAULT ((1)) FOR [UserId]
 GO
 
 ALTER TABLE [dbo].[Notes] ADD  DEFAULT ((0)) FOR [IsAnonymous]
+GO
+
+ALTER TABLE [dbo].[Notes] ADD  DEFAULT ((0)) FOR [IsDeleted]
+GO
+
+ALTER TABLE [dbo].[Notes]  WITH CHECK ADD  CONSTRAINT [FK_Notes_Users] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+
+ALTER TABLE [dbo].[Notes] CHECK CONSTRAINT [FK_Notes_Users]
 GO
 

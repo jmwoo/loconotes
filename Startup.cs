@@ -4,6 +4,7 @@ using loconotes.Data;
 using loconotes.Middleware.Filters;
 using loconotes.Models.Auth;
 using loconotes.Models.Cache;
+using loconotes.Providers;
 using loconotes.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -79,7 +80,8 @@ namespace loconotes
             services.AddTransient<INoteService, NoteService>();
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<INotesCacheProvider, NotesCacheProvider>();
-            services.AddTransient<IJwtService, JwtService>();
+	        services.AddTransient<INoteStore, NoteStore>();
+			services.AddTransient<IJwtService, JwtService>();
             services.AddTransient<ICryptoService, CryptoService>();
 			services.AddTransient<IUserService, UserService>();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using loconotes.Business.GeoLocation;
@@ -51,29 +52,32 @@ namespace loconotes.Models.Note
 
 		public bool IsDeleted { get; set; }
 
-        // TODO: move this to dedicated mapper
-        public NoteViewModel ToNoteViewModel(ApplicationUser applicationUser, VoteModel voteModel = null)
-        {
-            var userNoteViewModel = this.IsAnonymous || applicationUser == null ? null : new UserNoteViewModel
-            {
-                Uid = applicationUser.Uid,
-                Username = applicationUser.Username
-            };
+	    [ForeignKey("UserId")]
+	    public virtual UserDto User { get; set; }
 
-            return new NoteViewModel
-            {
-                Id = this.Id,
-                Uid = this.Uid.Value,
-                Score = this.Score,
-                DateCreated = this.DateCreated.Value,
-                Subject = this.Subject,
-                Body = this.Body,
-                Latitude = this.Latitude,
-                Longitude = this.Longitude,
-                Radius = this.Radius,
-                User = userNoteViewModel,
-                MyVote = voteModel?.Vote ?? VoteEnum.None
-            };
-        }
-    }
+		// TODO: move this to dedicated mapper
+		public NoteViewModel ToNoteViewModel(ApplicationUser applicationUser, VoteModel voteModel = null)
+		{
+			UserNoteViewModel userNoteViewModel;
+			if (this.User == null)
+				userNoteViewModel = new UserNoteViewModel {Uid = applicationUser.Uid, Username = applicationUser.Username};
+			else
+				userNoteViewModel = new UserNoteViewModel {Uid = this.User.Uid.Value, Username = this.User.Username};
+
+			return new NoteViewModel
+			{
+				Id = this.Id,
+				Uid = this.Uid.Value,
+				Score = this.Score,
+				DateCreated = this.DateCreated.Value,
+				Subject = this.Subject,
+				Body = this.Body,
+				Latitude = this.Latitude,
+				Longitude = this.Longitude,
+				Radius = this.Radius,
+				User = userNoteViewModel,
+				MyVote = voteModel?.Vote ?? VoteEnum.None
+			};
+		}
+	}
 }
