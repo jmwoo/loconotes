@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using loconotes.Business.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using loconotes.Models.Profile;
@@ -22,14 +24,14 @@ namespace loconotes.Controllers
 			_userService = userService;
 		}
 
-		[HttpDelete]
-		[Route("me")]
-		public async Task DeleteMe()
-		{
-			throw new NotImplementedException();
+		//[HttpDelete]
+		//[Route("me")]
+		//public async Task DeleteMe()
+		//{
+		//	throw new NotImplementedException();
 
-			//_userService.DeleteMe(ApplicationUser);
-		}
+		//	//_userService.DeleteMe(ApplicationUser);
+		//}
 
 		[HttpGet]
 		[Route("me/profile")]
@@ -50,6 +52,19 @@ namespace loconotes.Controllers
 		public async Task UpdatePassword([FromBody] UpdatePasswordModel updatePasswordModel)
 		{
 			await _userService.UpdatePassword(ApplicationUser, updatePasswordModel);
+		}
+
+		[HttpGet]
+		[Route("me/test")]
+		[AllowAnonymous]
+		public async Task Test()
+		{
+			//throw new ValidationException("this didn't work!");
+
+			//throw new UnauthorizedAccessException();
+			//throw new UnauthorizedAccessException("You can't be here!");
+
+			throw new ValidationException();
 		}
 	}
 }

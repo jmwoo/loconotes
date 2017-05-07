@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using loconotes.Data;
+using loconotes.Middleware.Filters;
 using loconotes.Models.Auth;
 using loconotes.Models.Cache;
 using loconotes.Services;
@@ -55,6 +56,8 @@ namespace loconotes
                     .Build();
 
                 config.Filters.Add(new AuthorizeFilter(policy));
+
+	            config.Filters.Add(new CustomExceptionFilterAttribute());
             });
 
             // Get options from app settings

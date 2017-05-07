@@ -29,16 +29,9 @@ namespace loconotes.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var allNotes = await _noteService.GetAll().ConfigureAwait(false);
-                return Ok(allNotes);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+			var allNotes = await _noteService.GetAll().ConfigureAwait(false);
+	        return Ok(allNotes);
+		}
 
         [HttpPost("")]
         [Authorize]
@@ -53,10 +46,6 @@ namespace loconotes.Controllers
             {
                 var note = await _noteService.Create(ApplicationUser, noteCreateModel).ConfigureAwait(false);
                 return Created("Note", note);
-            }
-            catch (ValidationException validationException)
-            {
-                return BadRequest(validationException.Message);
             }
             catch (ConflictException conflictException)
             {
@@ -109,8 +98,7 @@ namespace loconotes.Controllers
             if (noteSearchRequest == null || !TryValidateModel(noteSearchRequest))
                 return BadRequest();
 
-            var applicationUser = this.ApplicationUser;
-            var nearybyNotes = await _noteService.Nearby(applicationUser, noteSearchRequest).ConfigureAwait(false);
+            var nearybyNotes = await _noteService.Nearby(ApplicationUser, noteSearchRequest).ConfigureAwait(false);
             return Ok(nearybyNotes);
         }
     }

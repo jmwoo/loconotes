@@ -75,71 +75,50 @@ namespace loconotes.Services
 
 		public async Task DeleteAll(ApplicationUser applicationUser)
 		{
-			try
+			foreach (var note in _dbContext.Notes.Where(note => note.UserId == applicationUser.Id))
 			{
-				foreach (var note in _dbContext.Notes.Where(note => note.UserId == applicationUser.Id))
-				{
-					note.IsDeleted = true;
-				}
-				await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-				_notesCacheProvider.Clear();
+				note.IsDeleted = true;
 			}
-			catch (DbUpdateException updateException)
-			{
-				throw new ConflictException(updateException.Message, updateException);
-			}
+			await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+			_notesCacheProvider.Clear();
 		}
 
 	    public async Task DeleteNote(ApplicationUser applicationUser, int noteId)
 	    {
-			try
-			{
-				var note = await _dbContext.Notes.FindAsync(noteId).ConfigureAwait(false);
+		    var note = await _dbContext.Notes.FindAsync(noteId).ConfigureAwait(false);
 
-				if (note.UserId != applicationUser.Id)
-				{
-					throw new UnauthorizedAccessException();
-				}
+		    if (note.UserId != applicationUser.Id)
+		    {
+			    throw new UnauthorizedAccessException();
+		    }
 
-				note.IsDeleted = true;
-				await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-				_notesCacheProvider.Clear();
-			}
-			catch (DbUpdateException updateException)
-			{
-				throw new ConflictException(updateException.Message, updateException);
-			}
+		    note.IsDeleted = true;
+		    await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+		    _notesCacheProvider.Clear();
 		}
 
 	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
         {
-            try
-            {
-                var note = await _dbContext.Notes.FindAsync(NoteId).ConfigureAwait(false);
+			var note = await _dbContext.Notes.FindAsync(NoteId).ConfigureAwait(false);
 
-	            if (note.IsDeleted)
-	            {
-					throw new NotFoundException();
-				}
+	        if (note.IsDeleted)
+	        {
+		        throw new NotFoundException();
+	        }
 
-                _dbContext.Votes.Add(new Vote
-                {
-                    NoteId = note.Id,
-                    UserId = voteModel.UserId,
-                    Value = (int) voteModel.Vote
-                });
+	        _dbContext.Votes.Add(new Vote
+	        {
+		        NoteId = note.Id,
+		        UserId = voteModel.UserId,
+		        Value = (int)voteModel.Vote
+	        });
 
-                note.Score += Convert.ToInt32(voteModel.Vote);
+	        note.Score += Convert.ToInt32(voteModel.Vote);
 
-                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-                _notesCacheProvider.Clear();
-                return note.ToNoteViewModel(applicationUser, voteModel);
-            }
-            catch (DbUpdateException updateException)
-            {
-                throw new ConflictException(updateException.Message, updateException);
-            }
-        }
+	        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+	        _notesCacheProvider.Clear();
+	        return note.ToNoteViewModel(applicationUser, voteModel);
+		}
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest)
         {
