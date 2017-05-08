@@ -5,6 +5,7 @@ namespace loconotes.Models.Note
 {
     public class VoteModel
     {
+		[JsonProperty(ItemConverterType = typeof(StringEnumConverter))]
         public VoteEnum Vote { get; set; }
         
         [JsonIgnore]

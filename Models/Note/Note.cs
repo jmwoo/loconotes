@@ -58,11 +58,16 @@ namespace loconotes.Models.Note
 		// TODO: move this to dedicated mapper
 		public NoteViewModel ToNoteViewModel(ApplicationUser applicationUser, VoteModel voteModel = null)
 		{
-			UserNoteViewModel userNoteViewModel;
-			if (this.User == null)
-				userNoteViewModel = new UserNoteViewModel {Uid = applicationUser.Uid, Username = applicationUser.Username};
+			AuthorView authorView;
+
+			if (this.IsAnonymous)
+			{
+				authorView = null;
+			}
+			else if (this.User == null) // viewer is self
+				authorView = new AuthorView {Uid = applicationUser.Uid, Username = applicationUser.Username};
 			else
-				userNoteViewModel = new UserNoteViewModel {Uid = this.User.Uid.Value, Username = this.User.Username};
+				authorView = new AuthorView {Uid = this.User.Uid.Value, Username = this.User.Username};
 
 			return new NoteViewModel
 			{
@@ -75,7 +80,7 @@ namespace loconotes.Models.Note
 				Latitude = this.Latitude,
 				Longitude = this.Longitude,
 				Radius = this.Radius,
-				User = userNoteViewModel,
+				User = authorView,
 				MyVote = voteModel?.Vote ?? VoteEnum.None
 			};
 		}

@@ -1,6 +1,9 @@
-﻿namespace loconotes.Models.Note
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace loconotes.Models.Note
 {
-    public enum VoteEnum
+	public enum VoteEnum
     {
         Up = 1,
         Down = -1,

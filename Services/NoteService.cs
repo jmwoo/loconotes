@@ -119,30 +119,48 @@ namespace loconotes.Services
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
 
-            var userVotes = _dbContext.Votes.Where(v => v.UserId == applicationUser.Id);
+	        var orderedNearbyNotes = await _dbContext.Notes
+		        .Include(n => n.User)
+		        .WhereInGeoCodeRange(new GeoCodeRange
+		        {
+			        MinimumLatitude = geoCodeRange.MinimumLatitude,
+			        MaximumLatitude = geoCodeRange.MaximumLatitude,
+			        MinimumLongitude = geoCodeRange.MinimumLongitude,
+			        MaximumLongitude = geoCodeRange.MaximumLongitude,
+		        })
+		        .Where(n => !n.IsDeleted)
+		        .OrderBy(n =>
+			        GeolocationHelpers.CalculateDistance(
+				        n.LatitudeD, n.LongitudeD,
+				        noteSearchRequest.LatitudeD,
+				        noteSearchRequest.LongitudeD,
+				        GeolocationHelpers.DistanceType.Kilometers))
+		        .Take(noteSearchRequest.Take)
+				.ToListAsync();
 
-            var nearbyNotes = _dbContext.Notes.AsQueryable().WhereInGeoCodeRange(new GeoCodeRange
-            {
-                MinimumLatitude = geoCodeRange.MinimumLatitude,
-                MaximumLatitude = geoCodeRange.MaximumLatitude,
-                MinimumLongitude = geoCodeRange.MinimumLongitude,
-                MaximumLongitude = geoCodeRange.MaximumLongitude,
-            });
+	        var votes = await _dbContext.Votes.Where(v => 
+				orderedNearbyNotes.Select(n => n.Id).Contains(v.NoteId)
+				&& orderedNearbyNotes.Select(n => n.UserId).Contains(applicationUser.Id)
+			).ToListAsync();
 
-            // TODO: holy shit this is complicated
-            var orderedNearbyNotes = nearbyNotes
-				.Include(n => n.User)
-                .OrderBy(n =>
-                        GeolocationHelpers.CalculateDistance(n.LatitudeD, n.LongitudeD, noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD,
-                            GeolocationHelpers.DistanceType.Kilometers))
-				.Where(n => !n.IsDeleted)
-                .Take(noteSearchRequest.Take)
-                .Select(n => n.ToNoteViewModel(applicationUser, 
-                    userVotes.Select(v => v.NoteId).Contains(n.Id) ? new VoteModel { UserId = applicationUser.Id, Vote = (VoteEnum)userVotes.FirstOrDefault(v => v.NoteId == n.Id).Value } : null)
-                )
-                ;
+	        return orderedNearbyNotes.Select(n =>
+	        {
+		        var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
 
-            return orderedNearbyNotes;
+		        VoteModel voteModel = null;
+		        if (vote != null)
+		        {
+			        voteModel = new VoteModel
+			        {
+				        UserId = applicationUser.Id,
+				        Vote = (VoteEnum) (votes.FirstOrDefault(v => v.NoteId == n.Id)?.Value ?? 0)
+			        };
+		        }
+
+		        return n.ToNoteViewModel(applicationUser, voteModel);
+	        });
+
+
         }
-    }
+	}
 }

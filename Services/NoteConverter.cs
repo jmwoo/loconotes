@@ -18,7 +18,7 @@ namespace loconotes.Services
 		{
 			return notes.Select(note =>
 			{
-				var userNoteViewModel = note.IsAnonymous || viewingUser == null ? null : new UserNoteViewModel
+				var userNoteViewModel = note.IsAnonymous || viewingUser == null ? null : new AuthorView
 				{
 					Uid = viewingUser.Uid,
 					Username = viewingUser.Username
