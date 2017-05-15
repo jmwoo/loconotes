@@ -135,7 +135,8 @@ namespace loconotes.Services
 				        noteSearchRequest.LatitudeD,
 				        noteSearchRequest.LongitudeD,
 				        GeolocationHelpers.DistanceType.Kilometers))
-		        .Take(noteSearchRequest.Take)
+		        .ThenByDescending(n => n.Id)
+				.Take(noteSearchRequest.Take)
 				.ToListAsync();
 
 	        var votes = await _dbContext.Votes.Where(v => 
