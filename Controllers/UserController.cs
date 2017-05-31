@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using loconotes.Business.Exceptions;
+using loconotes.Models.Note;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using loconotes.Models.Profile;
@@ -14,14 +15,16 @@ namespace loconotes.Controllers
 	[Route("api/users")]
 	public class UserController : BaseIdentityController
 	{
-
 		private readonly IUserService _userService;
+		private readonly INoteService _noteService;
 
 		public UserController(
-			IUserService userService
+			IUserService userService,
+			INoteService noteService
 		)
 		{
 			_userService = userService;
+			_noteService = noteService;
 		}
 
 		//[HttpDelete]
@@ -52,6 +55,13 @@ namespace loconotes.Controllers
 		public async Task UpdatePassword([FromBody] UpdatePasswordModel updatePasswordModel)
 		{
 			await _userService.UpdatePassword(ApplicationUser, updatePasswordModel);
+		}
+
+		[HttpGet]
+		[Route("{username}/notes")]
+		public async Task<IEnumerable<NoteViewModel>> GetNotesByUser(string username)
+		{
+			return await _noteService.GetNotesByUser(ApplicationUser, username);
 		}
 
 		[HttpGet]

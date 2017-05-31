@@ -24,6 +24,7 @@ namespace loconotes.Services
         Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
 		Task DeleteAll(ApplicationUser applicationUser);
 	    Task DeleteNote(ApplicationUser applicationUser, int noteId);
+	    Task<IEnumerable<NoteViewModel>> GetNotesByUser(ApplicationUser applicationUser, string username);
 
     }
 
@@ -90,6 +91,38 @@ namespace loconotes.Services
 
 		    note.IsDeleted = true;
 		    await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+		}
+
+	    public async Task<IEnumerable<NoteViewModel>> GetNotesByUser(ApplicationUser applicationUser, string username)
+	    {
+		    var user = await _dbContext.Users.FirstOrDefaultAsync(u => string.Equals(u.Username, username, StringComparison.CurrentCultureIgnoreCase));
+
+			if (user == null) 
+				throw new NotFoundException();
+
+		    var notes = await _dbContext.Notes.Where(n => n.UserId == user.Id).ToListAsync();
+
+		    var votes = await _dbContext.Votes.Where(v =>
+			    notes.Select(n => n.Id).Contains(v.NoteId)
+			    && notes.Select(n => n.UserId).Contains(applicationUser.Id)
+		    ).ToListAsync();
+
+		    return notes.Select(n =>
+		    {
+			    var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
+
+			    VoteModel voteModel = null;
+			    if (vote != null)
+			    {
+				    voteModel = new VoteModel
+				    {
+					    UserId = applicationUser.Id,
+					    Vote = (VoteEnum)(votes.FirstOrDefault(v => v.NoteId == n.Id)?.Value ?? 0)
+				    };
+			    }
+
+			    return n.ToNoteViewModel(applicationUser, voteModel);
+		    });
 		}
 
 	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
@@ -160,8 +193,6 @@ namespace loconotes.Services
 
 		        return n.ToNoteViewModel(applicationUser, voteModel);
 	        });
-
-
         }
 	}
 }
