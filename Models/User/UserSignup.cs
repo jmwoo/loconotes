@@ -10,7 +10,8 @@ namespace loconotes.Models.User
     {
         [Required(AllowEmptyStrings = false)]
         [StringLength(25, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 3)]
-        public string Username { get; set; }
+        [RegularExpression("^[a-zA-Z0-9]*$", ErrorMessage = "Only Alphabets and Numbers allowed.")]
+		public string Username { get; set; }
 
         [Required(AllowEmptyStrings = false)]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]

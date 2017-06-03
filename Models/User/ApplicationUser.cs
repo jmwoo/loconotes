@@ -10,5 +10,7 @@ namespace loconotes.Models.User
         public string Username { get; set; }
         public int Id { get; set; }
         public Guid Uid { get; set; }
+
+	    public bool IsValid => !(Username == null || Id <= 0 || Uid == Guid.Empty);
     }
 }

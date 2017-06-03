@@ -57,8 +57,8 @@ namespace loconotes
                     .Build();
 
                 config.Filters.Add(new AuthorizeFilter(policy));
-
 	            config.Filters.Add(new CustomExceptionFilterAttribute());
+	            config.Filters.Add(new ModelStateValidationFilter());
             });
 
             // Get options from app settings
