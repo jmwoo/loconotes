@@ -28,7 +28,7 @@ namespace loconotes.Controllers
 
 					applicationUser.Username = usernameClaim?.Value;
 					applicationUser.Id = Convert.ToInt32(userIdClaim?.Value ?? "0");
-					applicationUser.Uid = Guid.Parse(userUidClaim.Value);
+					applicationUser.Uid = userUidClaim == null ? Guid.Empty : Guid.Parse(userUidClaim.Value);
 
 					return applicationUser;
 				}

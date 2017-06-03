@@ -65,6 +65,13 @@ namespace loconotes.Controllers
 		}
 
 		[HttpGet]
+		[Route("me/notes")]
+		public async Task<IEnumerable<NoteViewModel>> GetMyNotes()
+		{
+			return await _noteService.GetNotesByUser(ApplicationUser, ApplicationUser.Username);
+		}
+
+		[HttpGet]
 		[Route("me/test")]
 		[AllowAnonymous]
 		public async Task Test()

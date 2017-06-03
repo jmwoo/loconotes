@@ -100,14 +100,21 @@ namespace loconotes.Services
 			if (user == null) 
 				throw new NotFoundException();
 
-		    var notes = await _dbContext.Notes.Where(n => n.UserId == user.Id).ToListAsync();
+		    var notes = _dbContext.Notes.Where(n => n.UserId == user.Id);
+
+		    if (applicationUser.Username != username) // if not looking up self
+		    {
+			    notes = notes.Where(n => !n.IsAnonymous);
+		    }
+
+		    var notesList = await notes.ToListAsync();
 
 		    var votes = await _dbContext.Votes.Where(v =>
-			    notes.Select(n => n.Id).Contains(v.NoteId)
-			    && notes.Select(n => n.UserId).Contains(applicationUser.Id)
+			    notesList.Select(n => n.Id).Contains(v.NoteId)
+			    && notesList.Select(n => n.UserId).Contains(applicationUser.Id)
 		    ).ToListAsync();
 
-		    return notes.Select(n =>
+		    return notesList.Select(n =>
 		    {
 			    var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
 
