@@ -88,6 +88,7 @@ namespace loconotes.Services
 	    {
 		    var notes = _dbContext.Notes
 				.Include(n => n.User)
+				.Include(n => n.Votes)
 				.Where(n => String.Equals(n.User.Username, username, StringComparison.CurrentCultureIgnoreCase))
 				.Where(n => !n.IsDeleted)
 				;
@@ -132,6 +133,7 @@ namespace loconotes.Services
 
 	        var orderedNearbyNotes = await _dbContext.Notes
 		        .Include(n => n.User)
+				.Include(n => n.Votes)
 		        .WhereInGeoCodeRange(new GeoCodeRange
 		        {
 			        MinimumLatitude = geoCodeRange.MinimumLatitude,
@@ -160,21 +162,11 @@ namespace loconotes.Services
 			    return new List<NoteViewModel>();
 		    }
 
-		    var votes = new List<Models.Vote>();
-
-		    if (applicationUser.IsValid)
-		    {
-			    votes = await _dbContext.Votes.Where(v =>
-				    notes.Select(n => n.Id).Contains(v.NoteId)
-				    && v.UserId == applicationUser.Id
-			    ).ToListAsync();
-		    }
-
 		    return notes
 				.Where(n => !n.IsDeleted)
 				.Select(n =>
 				{
-					var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
+					var vote = n.Votes.FirstOrDefault(v => v.NoteId == n.Id && v.UserId == applicationUser.Id);
 
 					VoteModel voteModel = null;
 					if (vote != null)

@@ -54,5 +54,8 @@ namespace loconotes.Models.Note
 
 	    [ForeignKey("UserId")]
 	    public virtual UserEntity User { get; set; }
+
+	    [ForeignKey("NoteId")]
+	    public ICollection<Vote> Votes { get; set; } = new List<Vote>();
 	}
 }
