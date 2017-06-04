@@ -18,7 +18,6 @@ namespace loconotes.Services
 {
     public interface INoteService
     {
-        Task<IEnumerable<NoteViewModel>> GetAll();
         Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel);
         Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel);
         Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
@@ -39,29 +38,16 @@ namespace loconotes.Services
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<NoteViewModel>> GetAll()
-        {
-	        var notes = await _dbContext.Notes
-		        .Include(n => n.User)
-		        .Where(n => !n.IsDeleted)
-		        .OrderByDescending(n => n.DateCreated)
-		        .Select(n => n.ToNoteViewModel(null, null))
-		        .ToListAsync();
-
-	        return notes;
-        }
-
         public async Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel)
         {
             var noteToCreate = noteCreateModel.ToNote(applicationUser);
 
             try
             {
-                EntityEntry<Note> createdEntity = _dbContext.Notes.Add(noteToCreate);
+                var createdEntity = _dbContext.Notes.Add(noteToCreate);
 
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-				//return (await _dbContext.Notes.Include(n => n.User).FindAsync(createdEntity.Entity.Id)).ToNoteViewModel(applicationUser, null);
 	            var note = (await _dbContext.Notes.Include(n => n.User).FirstAsync(n => n.Id == createdEntity.Entity.Id));
 				return note.ToNoteViewModel(applicationUser, null);
 			}
@@ -84,6 +70,11 @@ namespace loconotes.Services
 	    {
 		    var note = await _dbContext.Notes.FindAsync(noteId).ConfigureAwait(false);
 
+		    if (note == null || note.IsDeleted)
+		    {
+			    throw new NotFoundException();
+		    }
+
 		    if (note.UserId != applicationUser.Id)
 		    {
 			    throw new UnauthorizedAccessException();
@@ -95,46 +86,26 @@ namespace loconotes.Services
 
 	    public async Task<IEnumerable<NoteViewModel>> GetNotesByUser(ApplicationUser applicationUser, string username)
 	    {
-		    var user = await _dbContext.Users.FirstOrDefaultAsync(u => string.Equals(u.Username, username, StringComparison.CurrentCultureIgnoreCase));
+		    var notes = _dbContext.Notes
+				.Include(n => n.User)
+				.Where(n => String.Equals(n.User.Username, username, StringComparison.CurrentCultureIgnoreCase))
+				.Where(n => !n.IsDeleted)
+				;
 
-			if (user == null) 
-				throw new NotFoundException();
-
-		    var notes = _dbContext.Notes.Where(n => n.UserId == user.Id);
-
-		    if (applicationUser.Username != username) // if not looking up self
+		    if (!String.Equals(applicationUser.Username, username, StringComparison.CurrentCultureIgnoreCase)) // if not looking up self
 		    {
 			    notes = notes.Where(n => !n.IsAnonymous);
 		    }
 
-		    var notesList = await notes.ToListAsync();
-
-		    var votes = await _dbContext.Votes.Where(v =>
-			    notesList.Select(n => n.Id).Contains(v.NoteId)
-			    && notesList.Select(n => n.UserId).Contains(applicationUser.Id)
-		    ).ToListAsync();
-
-		    return notesList.Select(n =>
-		    {
-			    var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
-
-			    VoteModel voteModel = null;
-			    if (vote != null)
-			    {
-				    voteModel = new VoteModel
-				    {
-					    UserId = applicationUser.Id,
-					    Vote = (VoteEnum)(votes.FirstOrDefault(v => v.NoteId == n.Id)?.Value ?? 0)
-				    };
-			    }
-
-			    return n.ToNoteViewModel(applicationUser, voteModel);
-		    });
+		    return await ConvertToViewableNotes(applicationUser, await notes.ToListAsync());
 		}
 
 	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
         {
-			var note = await _dbContext.Notes.Include(n => n.User).FirstAsync(n => n.Id == NoteId).ConfigureAwait(false);
+			var note = await _dbContext.Notes
+				.Include(n => n.User)
+				.FirstAsync(n => n.Id == NoteId)
+				.ConfigureAwait(false);
 
 	        if (note.IsDeleted)
 	        {
@@ -179,27 +150,44 @@ namespace loconotes.Services
 				.Take(noteSearchRequest.Take)
 				.ToListAsync();
 
-	        var votes = await _dbContext.Votes.Where(v => 
-				orderedNearbyNotes.Select(n => n.Id).Contains(v.NoteId)
-				&& orderedNearbyNotes.Select(n => n.UserId).Contains(applicationUser.Id)
-			).ToListAsync();
-
-	        return orderedNearbyNotes.Select(n =>
-	        {
-		        var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
-
-		        VoteModel voteModel = null;
-		        if (vote != null)
-		        {
-			        voteModel = new VoteModel
-			        {
-				        UserId = applicationUser.Id,
-				        Vote = (VoteEnum) (votes.FirstOrDefault(v => v.NoteId == n.Id)?.Value ?? 0)
-			        };
-		        }
-
-		        return n.ToNoteViewModel(applicationUser, voteModel);
-	        });
+	        return await ConvertToViewableNotes(applicationUser, orderedNearbyNotes);
         }
+
+	    private async Task<List<NoteViewModel>> ConvertToViewableNotes(ApplicationUser applicationUser, List<Note> notes)
+	    {
+		    if (!notes.Any())
+		    {
+			    return new List<NoteViewModel>();
+		    }
+
+		    var votes = new List<Models.Vote>();
+
+		    if (applicationUser.IsValid)
+		    {
+			    votes = await _dbContext.Votes.Where(v =>
+				    notes.Select(n => n.Id).Contains(v.NoteId)
+				    && v.UserId == applicationUser.Id
+			    ).ToListAsync();
+		    }
+
+		    return notes
+				.Where(n => !n.IsDeleted)
+				.Select(n =>
+				{
+					var vote = votes.FirstOrDefault(v => v.NoteId == n.Id);
+
+					VoteModel voteModel = null;
+					if (vote != null)
+					{
+						voteModel = new VoteModel
+						{
+							UserId = applicationUser.Id,
+							Vote = (VoteEnum)vote.Value
+						};
+					}
+
+					return n.ToNoteViewModel(applicationUser, voteModel);
+				}).ToList();
+	    }
 	}
 }

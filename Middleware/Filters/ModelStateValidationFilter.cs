@@ -7,16 +7,14 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace loconotes.Middleware.Filters
 {
-	public class ModelStateValidationFilter : Attribute, IActionFilter
+	public class ModelStateValidationFilter : ActionFilterAttribute
 	{
-		public void OnActionExecuting(ActionExecutingContext context)
+		public override void OnActionExecuting(ActionExecutingContext context)
 		{
 			if (!context.ModelState.IsValid)
 			{
 				context.Result = new BadRequestObjectResult(context.ModelState);
 			}
 		}
-
-		public void OnActionExecuted(ActionExecutedContext context) { }
 	}
 }

@@ -25,23 +25,10 @@ namespace loconotes.Controllers
             _noteService = noteService;
         }
 
-        [HttpGet("")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAll()
-        {
-			var allNotes = await _noteService.GetAll().ConfigureAwait(false);
-	        return Ok(allNotes);
-		}
-
         [HttpPost("")]
         [Authorize]
         public async Task<IActionResult> Create([FromBody] NoteCreateModel noteCreateModel)
         {
-            if (noteCreateModel == null || !TryValidateModel(noteCreateModel))
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 var note = await _noteService.Create(ApplicationUser, noteCreateModel).ConfigureAwait(false);
@@ -74,9 +61,6 @@ namespace loconotes.Controllers
         [Authorize]
         public async Task<IActionResult> Vote([FromRoute] int id, [FromBody] VoteModel voteModel)
         {
-            if (voteModel == null || !TryValidateModel(voteModel))
-                return BadRequest(ModelState);
-
             var applicationUser = ApplicationUser;
             voteModel.UserId = applicationUser.Id;
 
@@ -95,9 +79,6 @@ namespace loconotes.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Nearby([FromBody] NoteSearchRequest noteSearchRequest)
         {
-            if (noteSearchRequest == null || !TryValidateModel(noteSearchRequest))
-                return BadRequest();
-
             var nearybyNotes = await _noteService.Nearby(ApplicationUser, noteSearchRequest).ConfigureAwait(false);
             return Ok(nearybyNotes);
         }

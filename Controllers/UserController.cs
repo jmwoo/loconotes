@@ -59,6 +59,7 @@ namespace loconotes.Controllers
 
 		[HttpGet]
 		[Route("{username}/notes")]
+		[AllowAnonymous]
 		public async Task<IEnumerable<NoteViewModel>> GetNotesByUser(string username)
 		{
 			return await _noteService.GetNotesByUser(ApplicationUser, username);
@@ -76,11 +77,6 @@ namespace loconotes.Controllers
 		[AllowAnonymous]
 		public async Task Test()
 		{
-			//throw new ValidationException("this didn't work!");
-
-			//throw new UnauthorizedAccessException();
-			//throw new UnauthorizedAccessException("You can't be here!");
-
 			throw new ValidationException();
 		}
 	}
