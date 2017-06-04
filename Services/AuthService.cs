@@ -23,7 +23,7 @@ namespace loconotes.Services
         public AuthService(
             LoconotesDbContext dbContext
             ,ICryptoService cryptoService
-            , IJwtService jwtService
+            ,IJwtService jwtService
         )
         {
             _dbContext = dbContext;

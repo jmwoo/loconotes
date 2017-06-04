@@ -54,35 +54,5 @@ namespace loconotes.Models.Note
 
 	    [ForeignKey("UserId")]
 	    public virtual UserDto User { get; set; }
-
-		// TODO: move this to dedicated mapper
-		public NoteViewModel ToNoteViewModel(ApplicationUser applicationUser, VoteModel voteModel = null)
-		{
-			AuthorView authorView;
-
-			if (this.IsAnonymous)
-			{
-				authorView = null;
-			}
-			else if (this.User == null) // viewer is self
-				authorView = new AuthorView {Uid = applicationUser.Uid, Username = applicationUser.Username};
-			else
-				authorView = new AuthorView {Uid = this.User.Uid.Value, Username = this.User.Username};
-
-			return new NoteViewModel
-			{
-				Id = this.Id,
-				Uid = this.Uid.Value,
-				Score = this.Score,
-				DateCreated = this.DateCreated.Value,
-				Subject = this.Subject,
-				Body = this.Body,
-				Latitude = this.Latitude,
-				Longitude = this.Longitude,
-				Radius = this.Radius,
-				User = authorView,
-				MyVote = voteModel?.Vote ?? VoteEnum.None
-			};
-		}
 	}
 }

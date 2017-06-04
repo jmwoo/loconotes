@@ -84,6 +84,7 @@ namespace loconotes
 			services.AddTransient<IJwtService, JwtService>();
             services.AddTransient<ICryptoService, CryptoService>();
 			services.AddTransient<IUserService, UserService>();
+	        services.AddTransient<INoteConverter, NoteConverter>();
 
 			services.AddSwaggerGen(c =>
             {

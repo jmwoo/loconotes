@@ -24,18 +24,18 @@ namespace loconotes.Services
 		Task DeleteAll(ApplicationUser applicationUser);
 	    Task DeleteNote(ApplicationUser applicationUser, int noteId);
 	    Task<IEnumerable<NoteViewModel>> GetNotesByUser(ApplicationUser applicationUser, string username);
-
     }
 
     public class NoteService : INoteService
     {
         private readonly LoconotesDbContext _dbContext;
+	    private readonly INoteConverter _noteConverter;
 
         public NoteService(
-            LoconotesDbContext dbContext
-        )
+            LoconotesDbContext dbContext, INoteConverter noteConverter)
         {
-            _dbContext = dbContext;
+	        _dbContext = dbContext;
+	        _noteConverter = noteConverter;
         }
 
         public async Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel)
@@ -49,8 +49,8 @@ namespace loconotes.Services
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
 
 	            var note = (await _dbContext.Notes.Include(n => n.User).FirstAsync(n => n.Id == createdEntity.Entity.Id));
-				return note.ToNoteViewModel(applicationUser, null);
-			}
+	            return _noteConverter.ToNoteViewModel(applicationUser, note, null);
+            }
             catch (DbUpdateException updateException)
             {
                 throw new ConflictException(updateException.Message, updateException);
@@ -122,7 +122,7 @@ namespace loconotes.Services
 	        note.Score += Convert.ToInt32(voteModel.Vote);
 
 	        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
-	        return note.ToNoteViewModel(applicationUser, voteModel);
+	        return _noteConverter.ToNoteViewModel(applicationUser, note, voteModel);
 		}
 
         public async Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest)
@@ -185,8 +185,7 @@ namespace loconotes.Services
 							Vote = (VoteEnum)vote.Value
 						};
 					}
-
-					return n.ToNoteViewModel(applicationUser, voteModel);
+					return _noteConverter.ToNoteViewModel(applicationUser, n, voteModel);
 				}).ToList();
 	    }
 	}
