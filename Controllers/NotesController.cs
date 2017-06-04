@@ -75,7 +75,15 @@ namespace loconotes.Controllers
             }
         }
 
-        [HttpPost("nearby")]
+	    [HttpPost("{id:int}/report")]
+	    [Authorize]
+	    public async Task<IActionResult> Report([FromRoute] int id)
+	    {
+		    await _noteService.ReportNote(ApplicationUser, id).ConfigureAwait(false);
+			return Ok();
+	    }
+
+		[HttpPost("nearby")]
         [AllowAnonymous]
         public async Task<IActionResult> Nearby([FromBody] NoteSearchRequest noteSearchRequest)
         {

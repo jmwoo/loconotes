@@ -9,6 +9,7 @@ using loconotes.Data;
 using loconotes.Models;
 using loconotes.Models.Cache;
 using loconotes.Models.Note;
+using loconotes.Models.ReportedNotes;
 using loconotes.Models.User;
 using Microsoft.AspNetCore.Server.Kestrel;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,8 @@ namespace loconotes.Services
     {
         Task<NoteViewModel> Create(ApplicationUser applicationUser, NoteCreateModel noteCreateModel);
         Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel);
-        Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
+	    Task ReportNote(ApplicationUser applicationUser, int noteId);
+		Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest);
 		Task DeleteAll(ApplicationUser applicationUser);
 	    Task DeleteNote(ApplicationUser applicationUser, int noteId);
 	    Task<IEnumerable<NoteViewModel>> GetNotesByUser(ApplicationUser applicationUser, string username);
@@ -89,6 +91,7 @@ namespace loconotes.Services
 		    var notes = _dbContext.Notes
 				.Include(n => n.User)
 				.Include(n => n.Votes)
+				.Include(n => n.ReportedNotes)
 				.Where(n => String.Equals(n.User.Username, username, StringComparison.CurrentCultureIgnoreCase))
 				.Where(n => !n.IsDeleted)
 				;
@@ -101,14 +104,14 @@ namespace loconotes.Services
 		    return await ConvertToViewableNotes(applicationUser, await notes.ToListAsync());
 		}
 
-	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int NoteId, VoteModel voteModel)
+	    public async Task<NoteViewModel> Vote(ApplicationUser applicationUser, int noteId, VoteModel voteModel)
         {
 			var note = await _dbContext.Notes
 				.Include(n => n.User)
-				.FirstAsync(n => n.Id == NoteId)
+				.FirstOrDefaultAsync(n => n.Id == noteId && n.IsDeleted == false)
 				.ConfigureAwait(false);
 
-	        if (note.IsDeleted)
+	        if (note == null)
 	        {
 		        throw new NotFoundException();
 	        }
@@ -126,7 +129,35 @@ namespace loconotes.Services
 	        return _noteConverter.ToNoteViewModel(applicationUser, note, voteModel);
 		}
 
-        public async Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest)
+	    public async Task ReportNote(ApplicationUser applicationUser, int noteId)
+	    {
+		    var note = await _dbContext.Notes
+			    .Include(n => n.User)
+				.Include(n => n.ReportedNotes)
+			    .FirstOrDefaultAsync(n => n.Id == noteId && n.IsDeleted == false)
+			    .ConfigureAwait(false);
+
+			if (note == null)
+		    {
+			    throw new NotFoundException();
+		    }
+
+		    var alreadyReportedByUser = note.ReportedNotes.FirstOrDefault(rn => rn.UserId == applicationUser.Id);
+
+		    if (alreadyReportedByUser != null)
+		    {
+			    throw new ValidationException("This note has already been reported.");
+		    }
+
+			_dbContext.ReportedNotes.Add(new ReportedNote
+			{
+				NoteId = note.Id,
+				UserId = applicationUser.Id
+			});
+			await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+	    }
+
+		public async Task<IEnumerable<NoteViewModel>> Nearby(ApplicationUser applicationUser, NoteSearchRequest noteSearchRequest)
         {
             var geoCodeRange = GeolocationHelpers.CalculateGeoCodeRange(noteSearchRequest.LatitudeD, noteSearchRequest.LongitudeD, noteSearchRequest.RangeKmD,
                 GeolocationHelpers.DistanceType.Kilometers);
@@ -134,7 +165,8 @@ namespace loconotes.Services
 	        var orderedNearbyNotes = await _dbContext.Notes
 		        .Include(n => n.User)
 				.Include(n => n.Votes)
-		        .WhereInGeoCodeRange(new GeoCodeRange
+		        .Include(n => n.ReportedNotes)
+				.WhereInGeoCodeRange(new GeoCodeRange
 		        {
 			        MinimumLatitude = geoCodeRange.MinimumLatitude,
 			        MaximumLatitude = geoCodeRange.MaximumLatitude,
@@ -164,9 +196,10 @@ namespace loconotes.Services
 
 		    return notes
 				.Where(n => !n.IsDeleted)
+				.Where(n => n.ReportedNotes.All(rn => rn.UserId != applicationUser.Id))
 				.Select(n =>
 				{
-					var vote = n.Votes.FirstOrDefault(v => v.NoteId == n.Id && v.UserId == applicationUser.Id);
+					var vote = n.Votes.FirstOrDefault(v => v.UserId == applicationUser.Id);
 
 					VoteModel voteModel = null;
 					if (vote != null)

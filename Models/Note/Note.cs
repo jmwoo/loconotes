@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using loconotes.Business.GeoLocation;
+using loconotes.Models.ReportedNotes;
 using loconotes.Models.User;
 using Newtonsoft.Json;
 
@@ -57,5 +58,8 @@ namespace loconotes.Models.Note
 
 	    [ForeignKey("NoteId")]
 	    public ICollection<Vote> Votes { get; set; } = new List<Vote>();
+
+	    [ForeignKey("NoteId")]
+	    public ICollection<ReportedNote> ReportedNotes { get; set; } = new List<ReportedNote>();
 	}
 }
