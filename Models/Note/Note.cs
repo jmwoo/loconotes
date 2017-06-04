@@ -53,6 +53,6 @@ namespace loconotes.Models.Note
 		public bool IsDeleted { get; set; }
 
 	    [ForeignKey("UserId")]
-	    public virtual UserDto User { get; set; }
+	    public virtual UserEntity User { get; set; }
 	}
 }

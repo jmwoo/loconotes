@@ -1,4 +1,5 @@
-﻿using System;
+﻿using loconotes.Models.User;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -25,5 +26,11 @@ namespace loconotes.Models
         public DateTime DateCreated { get; set; }
 
         public int Value { get; set; }
-    }
+
+		[ForeignKey("UserId")]
+		public virtual UserEntity User { get; set; }
+
+	    [ForeignKey("NoteId")]
+	    public virtual Note.Note Note { get; set; }
+	}
 }

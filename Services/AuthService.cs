@@ -66,7 +66,7 @@ namespace loconotes.Services
                 var passwordHash = _cryptoService.Hash(userSignup.Password);
                 var entityEntry =
                     await
-                        _dbContext.Users.AddAsync(new UserDto
+                        _dbContext.Users.AddAsync(new UserEntity
                         {
                             Username = userSignup.Username,
                             PasswordHash = passwordHash
